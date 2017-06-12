@@ -3,3 +3,10 @@ import:
 - package: github.com/mitchellh/go-homedir
 - package: github.com/spf13/cobra
 - package: github.com/Masterminds/sprig
+- package: github.com/src-d/gcfg
+- package: github.com/AlecAivazis/survey
+- package: gopkg.in/src-d/go-git.v4
+  vcs: git
+  repo: git@github.com:src-d/go-git.git
+testImport:
+- package: github.com/src-d/go-git-fixtures

@@ -1,11 +1,12 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
+var (
+	dataFile string
+)
 var applyCmd = &cobra.Command{
 	Use:   "apply [git-url|file-path|alias]",
 	Short: "Apply a template to the current directory",
@@ -15,7 +16,14 @@ var applyCmd = &cobra.Command{
 			return newUserError("apply command requires an argument")
 		}
 
-		fmt.Println("skelphome: ", skelper.SkelpHome)
+		// TODO check data file and use a file data provider instead of a prompter
+
+		//		gen := generator.New()
+		//		gen.Generate(args[0])
 		return nil
 	},
+}
+
+func init() {
+	applyCmd.Flags().StringVarP(&dataFile, "data", "d", "", "path to a json data file for filling in template data")
 }

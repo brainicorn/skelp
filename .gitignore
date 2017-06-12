@@ -13,7 +13,8 @@ dist
 Godeps
 .glide
 glide.lock
-cover.out
-.coverage/
-!.coverage/.gitkeep
 vendor/
+profile.out
+coverage.txt
+all.html
+skelp
