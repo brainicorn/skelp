@@ -34,6 +34,7 @@ before_install:
               "  LogLevel ERROR" >> ~/.ssh/config
 
         eval "$(ssh-agent -s)"
+        ssh-add $SSH_FILE
 
 install:
   - go get github.com/Masterminds/glide
