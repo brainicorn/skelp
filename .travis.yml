@@ -13,6 +13,7 @@ before_install:
        declare -r SSH_FILE="$(mktemp -u $HOME/.ssh/XXXXX)"
 
        openssl aes-256-cbc \
+	     --pass pass:""
          -K $encrypted_XXXXXXXXXXXX_key \
          -iv $encrypted_XXXXXXXXXXXX_iv \
          -in ".travis/github_ci_key.enc" \
