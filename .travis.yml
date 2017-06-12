@@ -8,8 +8,8 @@ env:
   global:
     - secure: "F3tvn+oUqgAJp1oaBbemwJJ85FvVqrTDQ/bLdGtjnNihhfOggmyo4ccsCBwvbUx1CIk/uEor60+FXETgJ0plyzocUi2vFFr4Se3ohNIR7O/VCikbQ3a3J/ZWYjJsBjfX3Jth10mtxQssBWl/iNofep0zrRynpE+EbiFg7N1+r5B2TgIhz5Z1ShMg9pBARfaQqa2SGQxXj0GJz5odDPap4Kaj/6zZINXKlIzxYbvxGe0Ki5UrHiPjQQs4XyTDf15zQHdiExHXa5eptExGRZ3HL2KGOoNHRaMt0txvyWCdkP2zNUjbczDs/bsb8xVC/RqF9cLUS4DkpWshUiz2y9PLKtYeTgYyGyE6jbf9X5zhUyrgrFuLvnzJV6Mjg/EjCllvSW246AJGIC7C37gbENp+Et+2qX6Rg7AuetE8lqCy9VuCHxK75tFst4YLDnmIPwdUqZn7rwYD2+FRBFBT+gGoxhHNYBfgtHt5Lj9B5VYUZ4MXpT/ywTjJL6wuq9ce5jOTxKgNDYcI8OP32Ppdk/rvwx8gFMFvLW6KqciMLh9FyimidUzSZ3/43EALtaNovQlR//2qbSj7Cj2E0Q7wwdvJZqEZ85eDDtr2tUxSp5qO+are8MbTu+4Xm9Nsdpj7FpvWIgUYSFz4Zc6SuPo+T83bX15ikXofUMbHGtYWngnqNuQ="
 before_install:
-  - declare -r SSH_FILE="$(mktemp -u $HOME/.ssh/XXXXX)"
-  - openssl aes-256-cbc -K $encrypted_614bca37b351_key -iv $encrypted_614bca37b351_iv -in ".travis/github_ci_key.enc" -out "$SSH_FILE" -d
+  - export SSH_FILE="$HOME/.ssh/id_rsa"
+  - openssl aes-256-cbc -K $encrypted_614bca37b351_key -iv $encrypted_614bca37b351_iv -in .travis/github_ci_key.enc -out $SSH_FILE -d
 
   - chmod 600 "$SSH_FILE" \
          && printf "%s\n" \
