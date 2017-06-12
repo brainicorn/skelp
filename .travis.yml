@@ -33,7 +33,7 @@ before_install:
               "  IdentityFile $SSH_FILE" \
               "  LogLevel ERROR" >> ~/.ssh/config
 
-        export SSH_TEST_PRIVATE_KEY=$SSH_FILE
+        eval "$(ssh-agent -s)"
 
 install:
   - go get github.com/Masterminds/glide
