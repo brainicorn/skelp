@@ -32,7 +32,7 @@ before_install:
               "Host github.com" \
               "  IdentityFile $SSH_FILE" \
               "  LogLevel ERROR" >> ~/.ssh/config
-			
+
         export SSH_TEST_PRIVATE_KEY=$SSH_FILE
 
 install:
