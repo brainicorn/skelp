@@ -4,6 +4,10 @@ go:
   - 1.8.x
   - tip
 
+before_install:
+  - openssl aes-256-cbc -K $encrypted_614bca37b351_key -iv $encrypted_614bca37b351_iv -in .travis/github_ci_key.enc -out $HOME/.travis/github_ci_key.pem -d
+  - chmod 600 $HOME/.travis/github_ci_key.pem
+
 install:
   - go get github.com/Masterminds/glide
   - glide --no-color up
