@@ -68,24 +68,25 @@ func (sdp *SkelplateDataProvider) gatherData(descriptor SkelplateDescriptor) (ma
 		var dataval interface{}
 		var gotdata bool
 		var defval interface{}
-
 		varname, err := sdp.runStringTemplate(v.Name(), fillerData)
 
 		if err != nil {
 			return nil, fmt.Errorf("unable to parse variable name template: %s - %s", v.Name(), err)
 		}
 
-		if reflect.TypeOf(v.Default()).Kind() == reflect.String {
+		valOfDefault := reflect.ValueOf(v.Default())
+
+		if valOfDefault.Kind() == reflect.String {
 			defval, err = sdp.runStringTemplate(v.Default().(string), fillerData)
 
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse variable default template: %s - %s", v.Default(), err)
 			}
-		} else if reflect.TypeOf(v.Default()).Kind() == reflect.Slice && reflect.TypeOf(v.Default()).Elem().Kind() == reflect.String {
-			defOpts := v.Default().([]string)
-			defVals := []string{}
+		} else if isStringSlice(valOfDefault) {
+			defOpts := v.Default().([]interface{})
+			defVals := []interface{}{}
 			for _, ds := range defOpts {
-				dv, dverr := sdp.runStringTemplate(ds, fillerData)
+				dv, dverr := sdp.runStringTemplate(ds.(string), fillerData)
 				if dverr != nil {
 					return nil, fmt.Errorf("unable to parse variable default template: %s - %s", ds, dverr)
 				}
@@ -99,20 +100,21 @@ func (sdp *SkelplateDataProvider) gatherData(descriptor SkelplateDescriptor) (ma
 
 		if dataval, gotdata = sdp.data[varname]; gotdata {
 			fillerVal := dataval
-			if reflect.TypeOf(defval).Kind() == reflect.TypeOf(dataval).Kind() {
-				if reflect.TypeOf(dataval).Kind() == reflect.String {
+			typeOfDefval := reflect.TypeOf(defval)
+			typeOfDataval := reflect.TypeOf(dataval)
+			if typeOfDefval.Kind() == typeOfDataval.Kind() {
+				if typeOfDataval.Kind() == reflect.String {
 					fillerVal, err = sdp.runStringTemplate(dataval.(string), fillerData)
 
 					if err != nil {
-						return nil, fmt.Errorf("unable to parse variable default template: %s - %s", dataval, err)
+						return nil, fmt.Errorf("unable to parse data template: %s - %s", dataval, err)
 					}
 				}
 
 				fillerData[varname] = fillerVal
 				continue
 			} else {
-				err = fmt.Errorf("invalid type for provided data entry %s: want (%s) have (%s)", varname, reflect.TypeOf(dataval).Kind(), reflect.TypeOf(defval).Kind())
-				break
+				return nil, fmt.Errorf("invalid type for provided data entry '%s': want (%s) have (%s)", varname, typeOfDataval.Kind(), typeOfDefval.Kind())
 			}
 		}
 
@@ -123,7 +125,6 @@ func (sdp *SkelplateDataProvider) gatherData(descriptor SkelplateDescriptor) (ma
 		}
 
 		fillerData[varname] = dataval
-		fmt.Println("filler data: ", fillerData)
 
 	}
 
@@ -153,4 +154,14 @@ func (sdp *SkelplateDataProvider) runStringTemplate(input string, tmplData inter
 	}
 
 	return target, err
+}
+
+func isStringSlice(valOf reflect.Value) bool {
+	if valOf.Kind() == reflect.Slice {
+		if valOf.Len() > 0 {
+			_, isstr := valOf.Index(0).Interface().(string)
+			return isstr
+		}
+	}
+	return false
 }

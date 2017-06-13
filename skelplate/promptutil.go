@@ -97,12 +97,14 @@ func configureDefaultAndValidators(prompt *prompter.Prompt, cv ComplexVar, defva
 		}
 
 		if cv.Min > 0 || cv.Max > 0 {
+			fmt.Println("got min/max")
 			mm := &prompter.MinMaxString{
 				Min: cv.Min,
 				Max: cv.Max,
 			}
 			prompt.Validators = append(prompt.Validators, mm.CheckMin)
 			prompt.Validators = append(prompt.Validators, mm.CheckMax)
+			fmt.Println("validators", prompt.Validators)
 		}
 	case float64:
 		defstring = strconv.FormatFloat(defval.(float64), 'f', -1, 64)
@@ -150,14 +152,13 @@ func doPrompt(ask, askAgain prompter.Prompter, beforePrompt func(), defval inter
 
 		for again {
 			ans, err = ask.Ask()
-			if err != nil {
-				return "", err
-			}
+			if err == nil {
 
-			answers = append(answers, ans)
+				answers = append(answers, ans)
 
-			if beforePrompt != nil {
-				beforePrompt()
+				if beforePrompt != nil {
+					beforePrompt()
+				}
 			}
 
 			again, err = prompter.AsBool(askAgain.Ask())
@@ -168,6 +169,7 @@ func doPrompt(ask, askAgain prompter.Prompter, beforePrompt func(), defval inter
 		answer, err = ask.Ask()
 	}
 
+	// TODO test this case
 	if err != nil {
 		return nil, err
 	}
@@ -200,12 +202,11 @@ func convertAnswer(answer string, defval interface{}) (interface{}, error) {
 			for _, s := range ansSlice {
 				tans, err = strconv.ParseFloat(s, 64)
 
-				if err != nil {
-					break
+				if err == nil {
+					typedSlice = append(typedSlice, tans)
 				}
-
-				typedSlice = append(typedSlice, tans)
 			}
+		// TODO test this case
 		default:
 			return nil, fmt.Errorf("unknow type in answer slice %s", reflect.TypeOf(defval.([]interface{})[0]).Kind().String())
 		}

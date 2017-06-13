@@ -129,33 +129,29 @@ func (i *KeyedInput) Ask() (string, error) {
 			for invalid := i.Validate(ans); invalid != nil; invalid = i.Validate(ans) {
 				err = i.Prompt.Error(invalid)
 				// if there was a problem
-				if err != nil {
-					return "", err
-				}
-
-				// ask for more input
-				ans, err = i.Ask()
-				// if there was a problem
-				if err != nil {
-					return "", err
+				if err == nil {
+					// ask for more input
+					ans, err = i.Ask()
 				}
 			}
 
-			i.Render(
-				KeyedInputTemplate,
-				KeyedTemplateData{
-					InputTemplateData: InputTemplateData{
-						Prompt:     i.Prompt,
-						Answer:     ans,
-						ShowAnswer: true,
+			if err == nil {
+				i.Render(
+					KeyedInputTemplate,
+					KeyedTemplateData{
+						InputTemplateData: InputTemplateData{
+							Prompt:     i.Prompt,
+							Answer:     ans,
+							ShowAnswer: true,
+						},
+						BoolDefault: trueOrFalseBool(i.Default),
+						IsConfirm:   i.IsConfirm,
 					},
-					BoolDefault: trueOrFalseBool(i.Default),
-					IsConfirm:   i.IsConfirm,
-				},
-			)
+				)
 
-			if i.IsConfirm {
-				return trueOrFalseString(ans), err
+				if i.IsConfirm {
+					return trueOrFalseString(ans), err
+				}
 			}
 		}
 	}

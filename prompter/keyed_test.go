@@ -35,7 +35,7 @@ func (f *fakeTypingUser) done() {
 	f.in.Close()
 }
 
-var tmplTests = []struct {
+var tmplKeyedTests = []struct {
 	ki         *KeyedInput
 	keystrokes []string
 	expected   string
@@ -112,7 +112,8 @@ var tmplTests = []struct {
 }
 
 func TestKeyedInput(t *testing.T) {
-	for _, tt := range tmplTests {
+
+	for _, tt := range tmplKeyedTests {
 		user := newFakeTypingUser(tt.keystrokes)
 		defer user.done()
 		tt.ki.BeforePrompt = user.nextKeystroke
@@ -123,7 +124,7 @@ func TestKeyedInput(t *testing.T) {
 		}
 
 		if ans != tt.expected {
-			t.Fatalf("answers don't match, have (%s) want (%s)", tt.expected, ans)
+			t.Fatalf("answers don't match, have (%s) want (%s)", ans, tt.expected)
 		}
 	}
 }

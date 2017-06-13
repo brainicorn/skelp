@@ -31,6 +31,15 @@ var tmplTests = []struct {
 	{
 		`{
 										  "author": "brainicorn",
+										"repository": "https://github.com/brainicorn/skelp",
+										  "variables":[{"name":"beer", "default":"ipa", "prompt":"enter beer style", "min":3,"max":20}]
+										}`,
+		[]string{"porter"},
+		map[string]interface{}{"beer": "porter"},
+	},
+	{
+		`{
+										  "author": "brainicorn",
 										  "variables":[{"name":"beer","default":"ipa"}
 											,{"name":"food", "default":true}
 											]
@@ -52,6 +61,14 @@ var tmplTests = []struct {
 		`{
 										  "author": "brainicorn",
 										  "variables":[{"name":"beer","default":6.5}]
+										}`,
+		[]string{"7.2"},
+		map[string]interface{}{"beer": float64(7.2)},
+	},
+	{
+		`{
+										  "author": "brainicorn",
+										  "variables":[{"name":"beer","default":6.5,"prompt":"rating","min":1,"max":10,"required":true}]
 										}`,
 		[]string{"7.2"},
 		map[string]interface{}{"beer": float64(7.2)},

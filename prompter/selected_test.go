@@ -1,11 +1,12 @@
 package prompter
 
 import (
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	"github.com/AlecAivazis/survey/core"
 )
 
 type fakeSelectingUser struct {
@@ -13,7 +14,7 @@ type fakeSelectingUser struct {
 	keystrokes []string
 }
 
-func newFakeSelectingUser(keystrokes ...string) *fakeSelectingUser {
+func newFakeSelectingUser(keystrokes []string) *fakeSelectingUser {
 	in, _ := ioutil.TempFile("", "")
 	os.Stdin = in
 
@@ -25,7 +26,9 @@ func newFakeSelectingUser(keystrokes ...string) *fakeSelectingUser {
 
 func (f *fakeSelectingUser) nextKeystroke() {
 	var keystroke string
+
 	keystroke, f.keystrokes = f.keystrokes[0], f.keystrokes[1:]
+
 	f.in.Truncate(0)
 	f.in.Seek(0, os.SEEK_SET)
 	io.WriteString(f.in, keystroke+"\n")
@@ -36,24 +39,139 @@ func (f *fakeSelectingUser) done() {
 	f.in.Close()
 }
 
-func TestSelectedInput(t *testing.T) {
-	user := newFakeSelectingUser("\x0e \x0e \n")
-	defer user.done()
-
-	ki := &SelectedInput{
-		Prompt: Prompt{
-			Question: "hello",
+var tmplSelectedTests = []struct {
+	ki         *SelectedInput
+	keystrokes []string
+	expected   string
+}{
+	{
+		&SelectedInput{
+			Prompt: Prompt{
+				Question: "1",
+			},
+			Options: []string{"one", "two", "three", "four"},
+			IsMulti: true,
 		},
-		Options: []string{"you", "world", "me", "dog"},
-		IsMulti: true,
+		[]string{"\x0e \x0e "},
+		"two,three",
+	},
+	{
+		&SelectedInput{
+			Prompt: Prompt{
+				Question: "2",
+			},
+			Options: []string{"one", "two", "three", "four"},
+			IsMulti: true,
+		},
+		[]string{"\x0e\x0e\x10 \x0e "},
+		"two,three",
+	},
+	{
+		&SelectedInput{
+			Prompt: Prompt{
+				Question: "3",
+			},
+			Options: []string{"one", "two", "three", "four"},
+			IsMulti: true,
+		},
+		[]string{" \x0e\x0e\x10  \x0e "},
+		"one,three",
+	},
+	{
+		&SelectedInput{
+			Prompt: Prompt{
+				Question: "4",
+				Default:  "four",
+			},
+			Options: []string{"one", "two", "three", "four"},
+			IsMulti: true,
+		},
+		[]string{" \x0e\x0e\x10  \x0e "},
+		"one,three,four",
+	},
+	{
+		&SelectedInput{
+			Prompt: Prompt{
+				Question: "5",
+				Help:     "pick one",
+			},
+			Options: []string{"one", "two", "three", "four"},
+			IsMulti: true,
+		},
+		[]string{"? \x0e\x0e\x10  \x0e "},
+		"one,three",
+	},
+	{
+		&SelectedInput{
+			Prompt: Prompt{
+				Question: "6",
+			},
+			Options: []string{"one", "two", "three", "four"},
+		},
+		[]string{"\x0e\x0e"},
+		"three",
+	},
+	{
+		&SelectedInput{
+			Prompt: Prompt{
+				Question: "7",
+			},
+			Options: []string{"one", "two", "three", "four"},
+			IsMulti: false,
+		},
+		[]string{"\x0e\x0e\x10\x0e"},
+		"three",
+	},
+	{
+		&SelectedInput{
+			Prompt: Prompt{
+				Question: "8",
+			},
+			Options: []string{"one", "two", "three", "four"},
+		},
+		[]string{"\x0e\x0e\x10\x0e"},
+		"three",
+	},
+	{
+		&SelectedInput{
+			Prompt: Prompt{
+				Question: "9",
+				Default:  "four",
+			},
+			Options: []string{"one", "two", "three", "four"},
+		},
+		[]string{"\x0e\x0e\x10\x0e"},
+		"four",
+	},
+	{
+		&SelectedInput{
+			Prompt: Prompt{
+				Question: "10",
+				Help:     "pick one",
+			},
+			Options: []string{"one", "two", "three", "four"},
+		},
+		[]string{"?\x0e\x0e\x10\x0e"},
+		"three",
+	},
+}
+
+func TestSelectedInput(t *testing.T) {
+	core.SelectFocusIcon = "▶"
+	for _, tt := range tmplSelectedTests {
+
+		user := newFakeSelectingUser(tt.keystrokes)
+		defer user.done()
+
+		tt.ki.BeforePrompt = user.nextKeystroke
+		ans, err := tt.ki.Ask()
+
+		if err != nil {
+			t.Fatalf("error prompting %s", err)
+		}
+
+		if ans != tt.expected {
+			t.Fatalf("answers don't match, have (%s) want (%s)", ans, tt.expected)
+		}
 	}
-
-	ki.BeforePrompt = user.nextKeystroke
-	s, e := ki.Ask()
-
-	if e != nil {
-		t.Fatalf("error prompting %s", e)
-	}
-
-	fmt.Println(s)
 }

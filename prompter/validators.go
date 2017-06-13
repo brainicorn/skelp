@@ -58,6 +58,7 @@ type MinMaxString struct {
 }
 
 func (mm *MinMaxString) CheckMin(val string) error {
+	fmt.Println("min string")
 	if mm.Min < 1 {
 		return nil
 	}
