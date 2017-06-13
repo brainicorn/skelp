@@ -73,87 +73,88 @@ func (i *KeyedInput) Ask() (string, error) {
 			IsConfirm:   i.IsConfirm,
 		},
 	)
-	if err != nil {
-		return "", err
-	}
+	if err == nil {
 
-	rr := terminal.NewRuneReader(os.Stdin)
-	rr.SetTermMode()
-	defer rr.RestoreTermMode()
+		rr := terminal.NewRuneReader(os.Stdin)
+		rr.SetTermMode()
+		defer rr.RestoreTermMode()
 
-	line := []rune{}
-	// get the next line
-	for {
-		line, err = rr.ReadLine(0)
-		if err != nil {
-			return string(line), err
-		}
-		// terminal will echo the \n so we need to jump back up one row
-		terminal.CursorPreviousLine(1)
+		line := []rune{}
+		// get the next line
+		for {
+			if err == nil {
+				line, err = rr.ReadLine(0)
+				if err == nil {
+					// terminal will echo the \n so we need to jump back up one row
+					terminal.CursorPreviousLine(1)
 
-		if string(line) == string(core.HelpInputRune) && i.Help != "" {
-			if i.BeforePrompt != nil {
-				i.BeforePrompt()
+					if string(line) == string(core.HelpInputRune) && i.Help != "" {
+						if i.BeforePrompt != nil {
+							i.BeforePrompt()
+						}
+						err = i.Render(
+							KeyedInputTemplate,
+							KeyedTemplateData{
+								InputTemplateData: InputTemplateData{
+									Prompt:   i.Prompt,
+									ShowHelp: true,
+								},
+								BoolDefault: trueOrFalseBool(i.Default),
+								IsConfirm:   i.IsConfirm,
+							},
+						)
+
+						if err == nil {
+							continue
+						}
+					}
+				}
 			}
-			err = i.Render(
+			break
+		}
+
+		if err == nil {
+			ans := string(line)
+
+			// if the line is empty
+			if len(strings.TrimSpace(ans)) < 1 {
+				// use the default value
+				ans = i.Default
+			}
+
+			// wait for a valid response
+			for invalid := i.Validate(ans); invalid != nil; invalid = i.Validate(ans) {
+				err = i.Prompt.Error(invalid)
+				// if there was a problem
+				if err != nil {
+					return "", err
+				}
+
+				// ask for more input
+				ans, err = i.Ask()
+				// if there was a problem
+				if err != nil {
+					return "", err
+				}
+			}
+
+			i.Render(
 				KeyedInputTemplate,
 				KeyedTemplateData{
 					InputTemplateData: InputTemplateData{
-						Prompt:   i.Prompt,
-						ShowHelp: true,
+						Prompt:     i.Prompt,
+						Answer:     ans,
+						ShowAnswer: true,
 					},
 					BoolDefault: trueOrFalseBool(i.Default),
 					IsConfirm:   i.IsConfirm,
 				},
 			)
 
-			if err != nil {
-				return "", err
+			if i.IsConfirm {
+				return trueOrFalseString(ans), err
 			}
-			continue
 		}
-		break
-	}
-
-	ans := string(line)
-
-	// if the line is empty
-	if len(strings.TrimSpace(ans)) < 1 {
-		// use the default value
-		ans = i.Default
-	}
-
-	// wait for a valid response
-	for invalid := i.Validate(ans); invalid != nil; invalid = i.Validate(ans) {
-		err = i.Prompt.Error(invalid)
-		// if there was a problem
-		if err != nil {
-			return "", err
-		}
-
-		// ask for more input
-		ans, err = i.Ask()
-		// if there was a problem
-		if err != nil {
-			return "", err
-		}
-	}
-
-	i.Render(
-		KeyedInputTemplate,
-		KeyedTemplateData{
-			InputTemplateData: InputTemplateData{
-				Prompt:     i.Prompt,
-				Answer:     ans,
-				ShowAnswer: true,
-			},
-			BoolDefault: trueOrFalseBool(i.Default),
-			IsConfirm:   i.IsConfirm,
-		},
-	)
-
-	if i.IsConfirm {
-		return trueOrFalseString(ans), err
 	}
 	return ans, err
 }
