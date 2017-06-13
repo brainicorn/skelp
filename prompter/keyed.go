@@ -56,6 +56,9 @@ func trueOrFalseString(val string) string {
 }
 
 func (i *KeyedInput) Ask() (string, error) {
+	var err error
+	var ans string
+
 	if i.BeforePrompt != nil {
 		i.BeforePrompt()
 	}
@@ -63,7 +66,7 @@ func (i *KeyedInput) Ask() (string, error) {
 	i.yesNoValidatorIfNeeded()
 
 	// render the template
-	err := i.Render(
+	err = i.Render(
 		KeyedInputTemplate,
 		KeyedTemplateData{
 			InputTemplateData: InputTemplateData{
@@ -114,7 +117,7 @@ func (i *KeyedInput) Ask() (string, error) {
 		}
 
 		if err == nil {
-			ans := string(line)
+			ans = string(line)
 
 			// if the line is empty
 			if len(strings.TrimSpace(ans)) < 1 {
