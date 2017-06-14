@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	truePattern  = regexp.MustCompile("^(?i:y(?:es)?)|(?i:t(?:rue)?)|1$")
-	falsePattern = regexp.MustCompile("^(?i:n(?:o)?)|(?i:f(?:alse)?)|0$")
+	truePattern  = regexp.MustCompile("(?i:^y(?:es)?)|(?i:^t(?:rue)?)|^1$")
+	falsePattern = regexp.MustCompile("(?i:^n(?:o)?)|(?i:^f(?:alse)?)|^0$")
 )
 
 type Validator func(val string) error
@@ -22,7 +22,7 @@ func StringNotBlank(val string) error {
 }
 
 func YesOrNo(val string) error {
-	if !truePattern.Match([]byte(val)) && !falsePattern.Match([]byte(val)) {
+	if !truePattern.MatchString(val) && !falsePattern.MatchString(val) {
 		return fmt.Errorf("%q is not a valid answer, please try again.", val)
 	}
 	return nil
@@ -58,13 +58,12 @@ type MinMaxString struct {
 }
 
 func (mm *MinMaxString) CheckMin(val string) error {
-	fmt.Println("min string")
 	if mm.Min < 1 {
 		return nil
 	}
 
 	if float64(len(strings.TrimSpace(val))) < mm.Min {
-		return fmt.Errorf("%q must have a min length of %d, please try again.", val, mm.Min)
+		return fmt.Errorf("%q must have a min length of %.0f, please try again.", val, mm.Min)
 	}
 
 	return nil
@@ -76,7 +75,7 @@ func (mm *MinMaxString) CheckMax(val string) error {
 	}
 
 	if float64(len(strings.TrimSpace(val))) > mm.Max {
-		return fmt.Errorf("%q must have a max length of %d, please try again.", val, mm.Max)
+		return fmt.Errorf("%q must have a max length of %.0f, please try again.", val, mm.Max)
 	}
 
 	return nil
@@ -99,7 +98,7 @@ func (mm *MinMaxNumber) CheckMin(val string) error {
 	}
 
 	if f < mm.Min {
-		return fmt.Errorf("%q must be greater than %d, please try again.", val, mm.Min)
+		return fmt.Errorf("%q must be greater than %.0f, please try again.", val, mm.Min)
 	}
 
 	return nil
@@ -117,7 +116,7 @@ func (mm *MinMaxNumber) CheckMax(val string) error {
 	}
 
 	if f > mm.Max {
-		return fmt.Errorf("%q must be less than %d, please try again.", val, mm.Min)
+		return fmt.Errorf("%q must be less than %.0f, please try again.", val, mm.Max)
 	}
 
 	return nil

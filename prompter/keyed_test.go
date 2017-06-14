@@ -7,6 +7,8 @@ import (
 	"testing"
 )
 
+var stringMinMax = &MinMaxString{Min: float64(2), Max: float64(5)}
+
 type fakeTypingUser struct {
 	in         *os.File
 	keystrokes []string
@@ -108,6 +110,20 @@ var tmplKeyedTests = []struct {
 		},
 		[]string{"two", "2"},
 		"2",
+	},
+	{
+		&KeyedInput{
+			Prompt: Prompt{
+				Question: "hello",
+				Validators: []Validator{
+					StringNotBlank,
+					stringMinMax.CheckMin,
+					stringMinMax.CheckMax,
+				},
+			},
+		},
+		[]string{"", "hi"},
+		"hi",
 	},
 }
 

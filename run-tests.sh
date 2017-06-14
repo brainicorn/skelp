@@ -13,8 +13,9 @@ test -d $workdir || mkdir -p $workdir
 echo "" > ${outfile}
 
 i=0
+pkglist=$(go list ./... | grep -v vendor) | awk -vORS=, '{ print $1 }' | sed 's/,$/\n/'
 for d in $(go list ./... | grep -v vendor); do
-    go test -coverprofile=${workdir}/profile_$i.out -covermode=atomic $d
+    go test -coverprofile=${workdir}/profile_$i.out -covermode=atomic -coverpkg=$pkglist $d
 	i=$((i+1))
 done
 
