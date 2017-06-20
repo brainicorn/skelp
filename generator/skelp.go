@@ -16,8 +16,6 @@ const (
 	skelpTemplatesDirname     = "templates"
 	skelpAliasesFilename      = "aliases.gob"
 	skelpTemplateCacheDirname = "gitcache"
-
-	ErrAliasNotFound = "Alias '%s' not found in registry"
 )
 
 type SkelpOptions struct {
@@ -39,28 +37,28 @@ func DefaultOptions() SkelpOptions {
 	}
 }
 
-type aliasRegistry map[string]string
-
 type SkelpGenerator struct {
-	SkelpHome string
-	funcMap   map[string]interface{}
-	tOptions  []string
-	aliases   aliasRegistry
-	mu        sync.Mutex
+	SkelpHome    string
+	funcMap      map[string]interface{}
+	tOptions     []string
+	skelpOptions SkelpOptions
+	aliases      aliasRegistry
+	mu           sync.Mutex
 }
 
-func New() *SkelpGenerator {
+func New(options SkelpOptions) *SkelpGenerator {
 	return &SkelpGenerator{
-		funcMap:  skelputil.FunctionMap(),
-		tOptions: skelputil.TemplateOptions(),
+		skelpOptions: options,
+		funcMap:      skelputil.FunctionMap(),
+		tOptions:     skelputil.TemplateOptions(),
 	}
 }
 
-func (sg *SkelpGenerator) absCacheDirFromURL(u string, options SkelpOptions) (string, error) {
+func (sg *SkelpGenerator) absCacheDirFromURL(u string) (string, error) {
 	var err error
 	var skelpHome, cacheDir, templateDir, absDir string
 
-	skelpHome, err = sg.initSkelpHome(options)
+	skelpHome, err = sg.initSkelpHome()
 
 	if err == nil {
 		cacheDir = filepath.Join(skelpHome, skelpTemplateCacheDirname)
@@ -80,18 +78,22 @@ func (sg *SkelpGenerator) absCacheDirFromURL(u string, options SkelpOptions) (st
 	return absDir, err
 }
 
-func (sg *SkelpGenerator) initSkelpHome(options SkelpOptions) (string, error) {
+func (sg *SkelpGenerator) initSkelpHome() (string, error) {
 	var err error
 	var homeDir string
 	var path string
 
-	skelpDir := defaultSkelpDir
-	if len(strings.TrimSpace(options.SkelpDirOverride)) > 0 {
-		skelpDir = options.SkelpDirOverride
+	if len(strings.TrimSpace(sg.SkelpHome)) > 0 && skelputil.PathExists(sg.SkelpHome) {
+		return sg.SkelpHome, nil
 	}
 
-	if len(strings.TrimSpace(options.HomeDirOverride)) > 0 {
-		homeDir = options.HomeDirOverride
+	skelpDir := defaultSkelpDir
+	if len(strings.TrimSpace(sg.skelpOptions.SkelpDirOverride)) > 0 {
+		skelpDir = sg.skelpOptions.SkelpDirOverride
+	}
+
+	if len(strings.TrimSpace(sg.skelpOptions.HomeDirOverride)) > 0 {
+		homeDir = sg.skelpOptions.HomeDirOverride
 	} else {
 		homeDir, err = homedir.Dir()
 	}

@@ -20,7 +20,7 @@ const (
 	ErrCacheNotFoundNoDownload   = "Remote template not found and downloads are turned off: %s"
 )
 
-func (sg *SkelpGenerator) Generate(templateID string, dataProvider provider.DataProvider, options SkelpOptions) error {
+func (sg *SkelpGenerator) Generate(templateID string, dataProvider provider.DataProvider) error {
 	var err error
 
 	if skelputil.IsBlank(templateID) {
@@ -29,17 +29,17 @@ func (sg *SkelpGenerator) Generate(templateID string, dataProvider provider.Data
 
 	switch TypeForTemplateID(templateID) {
 	case TIDTypeAlias:
-		err = sg.aliasGeneration(templateID, dataProvider, options)
+		err = sg.aliasGeneration(templateID, dataProvider)
 	case TIDTypeFile:
-		err = sg.pathGeneration(templateID, dataProvider, options)
+		err = sg.pathGeneration(templateID, dataProvider)
 	case TIDTypeRepo:
-		err = sg.repoGeneration(templateID, dataProvider, options)
+		err = sg.repoGeneration(templateID, dataProvider)
 	}
 
 	return err
 }
 
-func (sg *SkelpGenerator) pathGeneration(rootTemplateDir string, dataProvider provider.DataProvider, options SkelpOptions) error {
+func (sg *SkelpGenerator) pathGeneration(rootTemplateDir string, dataProvider provider.DataProvider) error {
 	var err error
 	var absRootTemplateDir string
 	var skelpTemplatespath string
@@ -49,7 +49,7 @@ func (sg *SkelpGenerator) pathGeneration(rootTemplateDir string, dataProvider pr
 	absRootTemplateDir, err = filepath.Abs(rootTemplateDir)
 
 	if err == nil {
-		out = options.OutputDir
+		out = sg.skelpOptions.OutputDir
 		skelpTemplatespath = filepath.Join(absRootTemplateDir, skelpTemplatesDirname)
 
 		if !skelputil.PathExists(absRootTemplateDir) {
@@ -71,42 +71,42 @@ func (sg *SkelpGenerator) pathGeneration(rootTemplateDir string, dataProvider pr
 
 	if err == nil {
 		skelpExec := executor.New(sg.funcMap, sg.tOptions)
-		err = skelpExec.Execute(skelpTemplatespath, out, tmplData, options.OverwriteProvider)
+		err = skelpExec.Execute(skelpTemplatespath, out, tmplData, sg.skelpOptions.OverwriteProvider)
 	}
 
 	return err
 }
 
-func (sg *SkelpGenerator) repoGeneration(templateID string, dataProvider provider.DataProvider, options SkelpOptions) error {
+func (sg *SkelpGenerator) repoGeneration(templateID string, dataProvider provider.DataProvider) error {
 	var err error
 	var localTemplatePath string
 
 	justDownloaded := false
 
-	localTemplatePath, err = sg.absCacheDirFromURL(templateID, options)
+	localTemplatePath, err = sg.absCacheDirFromURL(templateID)
 
 	if err == nil {
 		if !skelputil.PathExists(localTemplatePath) {
-			if options.Download {
-				err = sg.doDownload(templateID, localTemplatePath, options)
+			if sg.skelpOptions.Download {
+				err = sg.doDownload(templateID, localTemplatePath)
 			} else {
 				err = fmt.Errorf(ErrCacheNotFoundNoDownload, templateID)
 			}
 		}
 	}
 
-	if err == nil && !justDownloaded && options.CheckForUpdates {
-		err = sg.checkForUpdates(templateID, localTemplatePath, options)
+	if err == nil && !justDownloaded && sg.skelpOptions.CheckForUpdates {
+		err = sg.checkForUpdates(templateID, localTemplatePath)
 	}
 
 	if err == nil {
-		err = sg.pathGeneration(localTemplatePath, dataProvider, options)
+		err = sg.pathGeneration(localTemplatePath, dataProvider)
 	}
 
 	return err
 }
 
-func (sg *SkelpGenerator) doDownload(u, path string, options SkelpOptions) error {
+func (sg *SkelpGenerator) doDownload(u, path string) error {
 	var err error
 	am := AuthMethodForURL(u)
 
@@ -122,8 +122,8 @@ func (sg *SkelpGenerator) doDownload(u, path string, options SkelpOptions) error
 		os.RemoveAll(path)
 
 		// ask for authentication credentials and try again...
-		if options.BasicAuthProvider != nil {
-			user, pass := options.BasicAuthProvider()
+		if sg.skelpOptions.BasicAuthProvider != nil {
+			user, pass := sg.skelpOptions.BasicAuthProvider()
 			opts.Auth = http.NewBasicAuth(user, pass)
 			_, err = git.PlainClone(path, false, &opts)
 		}
@@ -132,7 +132,7 @@ func (sg *SkelpGenerator) doDownload(u, path string, options SkelpOptions) error
 	return err
 }
 
-func (sg *SkelpGenerator) checkForUpdates(u, path string, options SkelpOptions) error {
+func (sg *SkelpGenerator) checkForUpdates(u, path string) error {
 	var err error
 	var repo *git.Repository
 
@@ -149,8 +149,8 @@ func (sg *SkelpGenerator) checkForUpdates(u, path string, options SkelpOptions) 
 		if err != nil {
 			if err == transport.ErrAuthenticationRequired {
 				// ask for authentication credentials and try again...
-				if options.BasicAuthProvider != nil {
-					user, pass := options.BasicAuthProvider()
+				if sg.skelpOptions.BasicAuthProvider != nil {
+					user, pass := sg.skelpOptions.BasicAuthProvider()
 					opts.Auth = http.NewBasicAuth(user, pass)
 					err = repo.Pull(&opts)
 				}
@@ -166,14 +166,14 @@ func (sg *SkelpGenerator) checkForUpdates(u, path string, options SkelpOptions) 
 
 }
 
-func (sg *SkelpGenerator) aliasGeneration(templateID string, dataProvider provider.DataProvider, options SkelpOptions) error {
+func (sg *SkelpGenerator) aliasGeneration(templateID string, dataProvider provider.DataProvider) error {
 	var err error
 	var aliasedTemplateID string
 
-	aliasedTemplateID, err = sg.IDForAlias(templateID, options)
+	aliasedTemplateID, err = sg.IDForAlias(templateID)
 
 	if err == nil {
-		err = sg.Generate(aliasedTemplateID, dataProvider, options)
+		err = sg.Generate(aliasedTemplateID, dataProvider)
 	}
 
 	return err

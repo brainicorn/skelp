@@ -31,15 +31,16 @@ func TestLocalGenSimple(t *testing.T) {
 
 	tmpDir, _ := ioutil.TempDir("", "skelp-localgen-test")
 	defer os.RemoveAll(tmpDir)
-	gen := New()
 
 	opts := DefaultOptions()
 	opts.OutputDir = tmpDir
 
+	gen := New(opts)
+
 	defData := map[string]interface{}{"projectName": projectName, "packageName": packageName}
 	dp := skelplate.NewDataProvider(defData)
 
-	err := gen.Generate("../testdata/generator/simple", dp.DataProviderFunc, opts)
+	err := gen.Generate("../testdata/generator/simple", dp.DataProviderFunc)
 
 	if err != nil {
 		t.Errorf("generation error: %s", err)
@@ -89,14 +90,14 @@ func TestLocalGenCWD(t *testing.T) {
 
 	os.Chdir(tmpDir)
 	defer os.Chdir(origCWD)
-	gen := New()
 
 	opts := DefaultOptions()
+	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectName, "packageName": packageName}
 	dp := skelplate.NewDataProvider(defData)
 
-	err := gen.Generate(absTemplateDir, dp.DataProviderFunc, opts)
+	err := gen.Generate(absTemplateDir, dp.DataProviderFunc)
 
 	if err != nil {
 		t.Errorf("generation error: %s", err)
@@ -142,15 +143,15 @@ func TestLocalBlankTemplateID(t *testing.T) {
 
 	tmpDir, _ := ioutil.TempDir("", "skelp-badtmpl-test")
 	defer os.RemoveAll(tmpDir)
-	gen := New()
 
 	opts := DefaultOptions()
 	opts.OutputDir = tmpDir
+	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectName, "packageName": packageName}
 	dp := skelplate.NewDataProvider(defData)
 
-	err := gen.Generate("", dp.DataProviderFunc, opts)
+	err := gen.Generate("", dp.DataProviderFunc)
 
 	if err == nil || err.Error() != "Template ID not provided" {
 		t.Errorf("wrong error: have (%s), want (%s)", err, "Template ID not provided")
@@ -161,15 +162,15 @@ func TestLocalTemplateRootNotFound(t *testing.T) {
 
 	tmpDir, _ := ioutil.TempDir("", "skelp-badtmpl-test")
 	defer os.RemoveAll(tmpDir)
-	gen := New()
 
 	opts := DefaultOptions()
 	opts.OutputDir = tmpDir
+	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectName, "packageName": packageName}
 	dp := skelplate.NewDataProvider(defData)
 
-	err := gen.Generate("/does/not/exist", dp.DataProviderFunc, opts)
+	err := gen.Generate("/does/not/exist", dp.DataProviderFunc)
 
 	if err == nil || !strings.HasPrefix(err.Error(), "Template root not found") {
 		t.Errorf("wrong error: have (%s), want (%s)", err, "Template root not found")
@@ -180,15 +181,16 @@ func TestLocalTemplatesFolderNotFound(t *testing.T) {
 
 	tmpDir, _ := ioutil.TempDir("", "skelp-badtmpl-test")
 	defer os.RemoveAll(tmpDir)
-	gen := New()
 
 	opts := DefaultOptions()
 	opts.OutputDir = tmpDir
 
+	gen := New(opts)
+
 	defData := map[string]interface{}{"projectName": projectName, "packageName": packageName}
 	dp := skelplate.NewDataProvider(defData)
 
-	err := gen.Generate("../testdata/generator/notmplfolder", dp.DataProviderFunc, opts)
+	err := gen.Generate("../testdata/generator/notmplfolder", dp.DataProviderFunc)
 
 	if err == nil || !strings.HasPrefix(err.Error(), "Skelp templates dir not found") {
 		t.Errorf("wrong error: have (%s), want (%s)", err, "Skelp templates dir not found")
@@ -199,15 +201,16 @@ func TestLocalGenBadTmpl(t *testing.T) {
 
 	tmpDir, _ := ioutil.TempDir("", "skelp-badtmpl-test")
 	defer os.RemoveAll(tmpDir)
-	gen := New()
 
 	opts := DefaultOptions()
 	opts.OutputDir = tmpDir
 
+	gen := New(opts)
+
 	defData := map[string]interface{}{"projectName": projectName, "packageName": packageName}
 	dp := skelplate.NewDataProvider(defData)
 
-	err := gen.Generate("../testdata/generator/badtmpl", dp.DataProviderFunc, opts)
+	err := gen.Generate("../testdata/generator/badtmpl", dp.DataProviderFunc)
 
 	if err == nil {
 		t.Error("expected error but was nil")
@@ -218,15 +221,16 @@ func TestLocalMissingDescriptor(t *testing.T) {
 
 	tmpDir, _ := ioutil.TempDir("", "skelp-missing-descriptor-test")
 	defer os.RemoveAll(tmpDir)
-	gen := New()
 
 	opts := DefaultOptions()
 	opts.OutputDir = tmpDir
 
+	gen := New(opts)
+
 	defData := map[string]interface{}{"projectName": projectName, "packageName": packageName}
 	dp := skelplate.NewDataProvider(defData)
 
-	err := gen.Generate("../testdata/generator/nodescriptor", dp.DataProviderFunc, opts)
+	err := gen.Generate("../testdata/generator/nodescriptor", dp.DataProviderFunc)
 
 	if err == nil || !strings.HasPrefix(err.Error(), "skelp.json not found:") {
 		t.Errorf("wrong error: have (%s), want (%s)", err, "skelp.json not found:")
@@ -237,15 +241,16 @@ func TestNoOverwrite(t *testing.T) {
 
 	tmpDir, _ := ioutil.TempDir("", "skelp-nooverwrite-test")
 	defer os.RemoveAll(tmpDir)
-	gen := New()
 
 	opts := DefaultOptions()
 	opts.OutputDir = tmpDir
 
+	gen := New(opts)
+
 	defData := map[string]interface{}{"projectName": projectName, "packageName": packageName}
 	dp := skelplate.NewDataProvider(defData)
 
-	err := gen.Generate("../testdata/generator/simple", dp.DataProviderFunc, opts)
+	err := gen.Generate("../testdata/generator/simple", dp.DataProviderFunc)
 
 	if err != nil {
 		t.Errorf("generation error: %s", err)
@@ -267,7 +272,7 @@ func TestNoOverwrite(t *testing.T) {
 	newData := map[string]interface{}{"projectName": newProjectName, "packageName": packageName}
 	newDP := skelplate.NewDataProvider(newData)
 
-	err = gen.Generate("../testdata/generator/simple", newDP.DataProviderFunc, opts)
+	err = gen.Generate("../testdata/generator/simple", newDP.DataProviderFunc)
 
 	if err != nil {
 		t.Errorf("generation error: %s", err)
@@ -288,15 +293,15 @@ func TestOverwrite(t *testing.T) {
 
 	tmpDir, _ := ioutil.TempDir("", "skelp-overwrite-test")
 	defer os.RemoveAll(tmpDir)
-	gen := New()
 
 	opts := DefaultOptions()
 	opts.OutputDir = tmpDir
+	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectName, "packageName": packageName}
 	dp := skelplate.NewDataProvider(defData)
 
-	err := gen.Generate("../testdata/generator/simple", dp.DataProviderFunc, opts)
+	err := gen.Generate("../testdata/generator/simple", dp.DataProviderFunc)
 
 	if err != nil {
 		t.Errorf("generation error: %s", err)
@@ -319,7 +324,8 @@ func TestOverwrite(t *testing.T) {
 	newDP := skelplate.NewDataProvider(newData)
 
 	opts.OverwriteProvider = func(rootDir, relFile string) bool { return true }
-	err = gen.Generate("../testdata/generator/simple", newDP.DataProviderFunc, opts)
+	gen.skelpOptions = opts
+	err = gen.Generate("../testdata/generator/simple", newDP.DataProviderFunc)
 
 	if err != nil {
 		t.Errorf("generation error: %s", err)

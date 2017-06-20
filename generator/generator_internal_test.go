@@ -12,8 +12,8 @@ import (
 func TestDoDownloadSSH(t *testing.T) {
 	tmpDir, _ := ioutil.TempDir("", "skelp-git-test")
 	defer os.RemoveAll(tmpDir)
-	gen := New()
-	err := gen.doDownload("git@github.com:brainicorn/skelp.git", tmpDir, DefaultOptions())
+	gen := New(DefaultOptions())
+	err := gen.doDownload("git@github.com:brainicorn/skelp.git", tmpDir)
 
 	if err != nil {
 		t.Fatalf("error downloading %s", err.Error())
@@ -29,8 +29,8 @@ func TestDoDownloadSSH(t *testing.T) {
 func TestDoCheckForUpdatesSSH(t *testing.T) {
 	tmpDir, _ := ioutil.TempDir("", "skelp-git-test")
 	defer os.RemoveAll(tmpDir)
-	gen := New()
-	err := gen.doDownload("git@github.com:brainicorn/skelp.git", tmpDir, DefaultOptions())
+	gen := New(DefaultOptions())
+	err := gen.doDownload("git@github.com:brainicorn/skelp.git", tmpDir)
 
 	if err != nil {
 		t.Fatalf("error downloading %s", err.Error())
@@ -41,7 +41,7 @@ func TestDoCheckForUpdatesSSH(t *testing.T) {
 		t.Fatalf("download path doesn't exist %s", dpath)
 	}
 
-	err = gen.checkForUpdates("git@github.com:brainicorn/skelp.git", tmpDir, DefaultOptions())
+	err = gen.checkForUpdates("git@github.com:brainicorn/skelp.git", tmpDir)
 
 	if err != nil {
 		t.Fatalf("error updating %s", err.Error())
@@ -51,8 +51,8 @@ func TestDoCheckForUpdatesSSH(t *testing.T) {
 func TestDoDownloadHTTP(t *testing.T) {
 	tmpDir, _ := ioutil.TempDir("", "skelp-git-test")
 	defer os.RemoveAll(tmpDir)
-	gen := New()
-	err := gen.doDownload("https://github.com/brainicorn/skelp.git", tmpDir, DefaultOptions())
+	gen := New(DefaultOptions())
+	err := gen.doDownload("https://github.com/brainicorn/skelp.git", tmpDir)
 
 	if err != nil {
 		t.Fatalf("error downloading %s", err.Error())
@@ -68,8 +68,8 @@ func TestDoDownloadHTTP(t *testing.T) {
 func TestDoCheckForUpdatesHTTP(t *testing.T) {
 	tmpDir, _ := ioutil.TempDir("", "skelp-git-test")
 	defer os.RemoveAll(tmpDir)
-	gen := New()
-	err := gen.doDownload("https://github.com/brainicorn/skelp.git", tmpDir, DefaultOptions())
+	gen := New(DefaultOptions())
+	err := gen.doDownload("https://github.com/brainicorn/skelp.git", tmpDir)
 
 	if err != nil {
 		t.Fatalf("error downloading %s", err.Error())
@@ -80,7 +80,7 @@ func TestDoCheckForUpdatesHTTP(t *testing.T) {
 		t.Fatalf("download path doesn't exist %s", dpath)
 	}
 
-	err = gen.checkForUpdates("https://github.com/brainicorn/skelp.git", tmpDir, DefaultOptions())
+	err = gen.checkForUpdates("https://github.com/brainicorn/skelp.git", tmpDir)
 
 	if err != nil {
 		t.Fatalf("error updating %s", err.Error())
