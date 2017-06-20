@@ -1,0 +1,19 @@
+{
+  "author": "brainicorn",
+  "variables": [
+    {
+      "name": "projectName",
+      "default": "",
+      "prompt":"Enter a project name:",
+      "required":true,
+      "min":3
+    },
+    {
+      "name": "packageName",
+      "default": "",
+      "prompt":"Enter a package name:",
+      "required":true,
+      "min":3
+    }
+  ]
+}

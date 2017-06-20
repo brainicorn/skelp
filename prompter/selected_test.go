@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/AlecAivazis/survey/core"
+	"github.com/AlecAivazis/survey/terminal"
 )
 
 type fakeSelectingUser struct {
@@ -172,6 +173,62 @@ func TestSelectedInput(t *testing.T) {
 
 		if ans != tt.expected {
 			t.Fatalf("answers don't match, have (%s) want (%s)", ans, tt.expected)
+		}
+	}
+}
+
+var tmplSelectedErrorTests = []struct {
+	ki         *SelectedInput
+	keystrokes []string
+	expected   string
+}{
+	{
+		&SelectedInput{
+			Prompt: Prompt{
+				Question: "1",
+			},
+			Options: []string{"one", "two", "three", "four"},
+			IsMulti: true,
+		},
+		[]string{"\x0e " + string(terminal.KeyInterrupt)},
+		"cancelled",
+	},
+	{
+		&SelectedInput{
+			Prompt: Prompt{
+				Question: "1",
+			},
+			Options: []string{"one", "two", "three", "four"},
+			IsMulti: true,
+		},
+		[]string{"\x0e " + string(terminal.KeyEndTransmission)},
+		"cancelled",
+	},
+	{
+		&SelectedInput{
+			Prompt: Prompt{
+				Question: "1",
+			},
+			Options: []string{},
+			IsMulti: true,
+		},
+		[]string{},
+		"please provide options to select from",
+	},
+}
+
+func TestSelectedErrorInput(t *testing.T) {
+	core.SelectFocusIcon = "▶"
+	for _, tt := range tmplSelectedErrorTests {
+
+		user := newFakeSelectingUser(tt.keystrokes)
+		defer user.done()
+
+		tt.ki.BeforePrompt = user.nextKeystroke
+		_, err := tt.ki.Ask()
+
+		if err == nil || err.Error() != tt.expected {
+			t.Fatalf("wrong error. have (%s) want (%s)", err.Error(), tt.expected)
 		}
 	}
 }

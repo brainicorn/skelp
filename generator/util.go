@@ -21,7 +21,7 @@ const (
 var (
 	scpLikeUrlRegExp   = regexp.MustCompile("^(ssh://)?(?:(?P<user>[^@]+)(?:@))?(?P<host>[^:|/]+)(?::|/)?(?P<path>.+)$")
 	isHttpSchemeRegExp = regexp.MustCompile("^(http|https)://")
-	isFileSchemeRegExp = regexp.MustCompile("^(file)://")
+	isFileSchemeRegExp = regexp.MustCompile("^[.|/]|(file)://")
 )
 
 func TypeForTemplateID(templateID string) string {
@@ -82,11 +82,11 @@ func FilepathFromURL(u string) (string, error) {
 }
 
 func IsRepoURL(templateID string) bool {
-	return isHttpSchemeRegExp.MatchString(templateID) || scpLikeUrlRegExp.MatchString(templateID)
+	return !isFileSchemeRegExp.MatchString(templateID) && (isHttpSchemeRegExp.MatchString(templateID) || scpLikeUrlRegExp.MatchString(templateID))
 }
 
 func IsSSH(templateID string) bool {
-	return !isHttpSchemeRegExp.MatchString(templateID) && scpLikeUrlRegExp.MatchString(templateID)
+	return !isFileSchemeRegExp.MatchString(templateID) && !isHttpSchemeRegExp.MatchString(templateID) && scpLikeUrlRegExp.MatchString(templateID)
 }
 
 func IsFilePath(templateID string) bool {

@@ -9,8 +9,11 @@ type SkelplateDescriptor struct {
 	// TemplateAuthor is the author of the template.
 	TemplateAuthor string `json:"author"`
 
-	// TemplateURL is the url of the template.
+	// TemplateRepo is the url of the template.
 	TemplateRepo string `json:"repository"`
+
+	// TemplateDesc is the description of the template.
+	TemplateDesc string `json:"description"`
 
 	// TemplateCreated is the date the template was created.
 	TemplateCreated time.Time `json:"created"`
@@ -59,6 +62,9 @@ func (sv *SimpleVar) Name() string {
 func (sv *SimpleVar) Default() interface{} {
 	return sv.DefaultVal
 }
+
+// TODO add a Keyed struct and remove min/max from complex.
+// Complex becomes just a base type. Keyed should also have a IsPassword field.
 
 // ComplexVar is an object that can express complex rules for capturing input.
 //

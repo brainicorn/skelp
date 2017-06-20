@@ -125,6 +125,18 @@ var tmplKeyedTests = []struct {
 		[]string{"", "hi"},
 		"hi",
 	},
+	{
+		&KeyedInput{
+			Prompt: Prompt{
+				Question: "tell me your secret:",
+				Default:  "world",
+				Help:     "just say something",
+			},
+			IsPassword: true,
+		},
+		[]string{"?", "hi"},
+		"hi",
+	},
 }
 
 func TestKeyedInput(t *testing.T) {

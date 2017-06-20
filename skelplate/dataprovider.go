@@ -64,6 +64,12 @@ func (sdp *SkelplateDataProvider) gatherData(descriptor SkelplateDescriptor) (ma
 
 	fillerData := make(map[string]interface{})
 
+	fillerData["TemplateAuthor"] = descriptor.TemplateAuthor
+	fillerData["TemplateRepo"] = descriptor.TemplateRepo
+	fillerData["TemplateCreated"] = descriptor.TemplateCreated
+	fillerData["TemplateModified"] = descriptor.TemplateModified
+	fillerData["TemplateDesc"] = descriptor.TemplateDesc
+
 	for _, v := range descriptor.TemplateVariables {
 		var dataval interface{}
 		var gotdata bool

@@ -10,7 +10,8 @@ import (
 
 type KeyedInput struct {
 	Prompt
-	IsConfirm bool
+	IsConfirm  bool
+	IsPassword bool
 }
 
 var (
@@ -58,6 +59,14 @@ func trueOrFalseString(val string) string {
 func (i *KeyedInput) Ask() (string, error) {
 	var err error
 	var ans string
+	var mask rune
+
+	if i.IsPassword {
+		mask = '*'
+		i.Default = ""
+	} else {
+		mask = 0
+	}
 
 	if i.BeforePrompt != nil {
 		i.BeforePrompt()
@@ -86,7 +95,7 @@ func (i *KeyedInput) Ask() (string, error) {
 		// get the next line
 		for {
 			if err == nil {
-				line, err = rr.ReadLine(0)
+				line, err = rr.ReadLine(mask)
 				if err == nil {
 					// terminal will echo the \n so we need to jump back up one row
 					terminal.CursorPreviousLine(1)

@@ -49,11 +49,11 @@ func (we *WalkingExecutor) Execute(tmplDir, outputDir string, tmplData interface
 			var terr error
 			var relTarget string
 
-			if werr != nil {
-				return werr
-			}
+			terr = werr
 
-			relTarget, terr = we.calculateRelativeTarget(tmplDir, curPath, tmplData)
+			if terr == nil {
+				relTarget, terr = we.calculateRelativeTarget(tmplDir, curPath, tmplData)
+			}
 
 			if terr == nil {
 				if fi.IsDir() {
@@ -83,13 +83,16 @@ func (we *WalkingExecutor) processFileTemplate(outputDir, relTarget, templatePat
 		return nil
 	}
 
-	fileTemplate, err = template.New("file template").Option(we.tOptions...).Funcs(we.funcMap).ParseFiles(templatePath)
+	fileTemplate, err = template.ParseFiles(templatePath)
 
 	if err == nil {
+		fileTemplate.Option(we.tOptions...).Funcs(we.funcMap)
 		destFile, err = os.Create(absTarget)
 	}
 
-	err = fileTemplate.Execute(destFile, tmplData)
+	if err == nil {
+		err = fileTemplate.Execute(destFile, tmplData)
+	}
 
 	if err == nil {
 		srcMode, err = skelputil.GetFileMode(templatePath)

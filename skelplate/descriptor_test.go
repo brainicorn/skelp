@@ -189,6 +189,13 @@ func TestGatherData(t *testing.T) {
 			t.Errorf("error gathering data: %s\n%s", tt.tmpl, err)
 		}
 
+		// delete default filler data
+		delete(valmap, "TemplateAuthor")
+		delete(valmap, "TemplateRepo")
+		delete(valmap, "TemplateCreated")
+		delete(valmap, "TemplateModified")
+		delete(valmap, "TemplateDesc")
+
 		if !reflect.DeepEqual(tt.expected, valmap) {
 			t.Errorf("template parse error:\n  expected:\n  %+v\n  actual:\n  %+v", tt.expected, valmap)
 		}

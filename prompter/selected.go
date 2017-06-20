@@ -127,7 +127,7 @@ func (s *SelectedInput) Ask() (string, error) {
 		s.BeforePrompt()
 	}
 
-	err := s.Render(
+	s.Render(
 		SelectedInputTemplate,
 		SelectedTemplateData{
 			InputTemplateData: InputTemplateData{
@@ -138,10 +138,6 @@ func (s *SelectedInput) Ask() (string, error) {
 			Options:       s.Options,
 		},
 	)
-
-	if err != nil {
-		return "", err
-	}
 
 	rr := terminal.NewRuneReader(os.Stdin)
 	rr.SetTermMode()
@@ -154,10 +150,10 @@ func (s *SelectedInput) Ask() (string, error) {
 			break
 		}
 		if r == terminal.KeyInterrupt {
-			return "", fmt.Errorf("interrupt")
+			return "", fmt.Errorf("cancelled")
 		}
 		if r == terminal.KeyEndTransmission {
-			break
+			return "", fmt.Errorf("cancelled")
 		}
 		s.OnChange(nil, 0, r)
 	}

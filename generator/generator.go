@@ -16,7 +16,6 @@ import (
 const (
 	ErrBlankTemplateID           = "Template ID not provided"
 	ErrTemplateRootNotFound      = "Template root not found %s"
-	ErrSkelpFileNotFound         = "Skelp descriptor not found %s"
 	ErrSkelpTemplatesDirNotFound = "Skelp templates dir not found %s"
 	ErrCacheNotFoundNoDownload   = "Remote template not found and downloads are turned off: %s"
 )
@@ -42,13 +41,20 @@ func (sg *SkelpGenerator) Generate(templateID string, dataProvider provider.Data
 
 func (sg *SkelpGenerator) pathGeneration(rootTemplateDir string, dataProvider provider.DataProvider, options SkelpOptions) error {
 	var err error
+	var absRootTemplateDir string
+	var skelpTemplatespath string
+	var out string
 	var tmplData interface{}
 
-	out := options.OutputDir
-	skelpTemplatespath := filepath.Join(rootTemplateDir, skelpTemplatesDirname)
+	absRootTemplateDir, err = filepath.Abs(rootTemplateDir)
 
-	if !skelputil.PathExists(rootTemplateDir) {
-		err = fmt.Errorf(ErrTemplateRootNotFound, rootTemplateDir)
+	if err == nil {
+		out = options.OutputDir
+		skelpTemplatespath = filepath.Join(absRootTemplateDir, skelpTemplatesDirname)
+
+		if !skelputil.PathExists(absRootTemplateDir) {
+			err = fmt.Errorf(ErrTemplateRootNotFound, absRootTemplateDir)
+		}
 	}
 
 	if err == nil && !skelputil.PathExists(skelpTemplatespath) {
@@ -60,7 +66,7 @@ func (sg *SkelpGenerator) pathGeneration(rootTemplateDir string, dataProvider pr
 	}
 
 	if err == nil {
-		tmplData, err = dataProvider(rootTemplateDir)
+		tmplData, err = dataProvider(absRootTemplateDir)
 	}
 
 	if err == nil {

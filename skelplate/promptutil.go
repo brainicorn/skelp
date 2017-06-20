@@ -144,6 +144,7 @@ func configureDefaultAndValidators(prompt *prompter.Prompt, cv ComplexVar, defva
 func doPrompt(ask, askAgain prompter.Prompter, beforePrompt func(), defval interface{}) (interface{}, error) {
 	var err error
 	var answer string
+	var finalAnswer interface{}
 
 	if askAgain != nil {
 		var ans string
@@ -161,7 +162,7 @@ func doPrompt(ask, askAgain prompter.Prompter, beforePrompt func(), defval inter
 				}
 			}
 
-			again, err = prompter.AsBool(askAgain.Ask())
+			again, _ = prompter.AsBool(askAgain.Ask())
 		}
 
 		answer = strings.Join(answers, ",")
@@ -169,12 +170,11 @@ func doPrompt(ask, askAgain prompter.Prompter, beforePrompt func(), defval inter
 		answer, err = ask.Ask()
 	}
 
-	// TODO test this case
-	if err != nil {
-		return nil, err
+	if err == nil {
+		finalAnswer, err = convertAnswer(answer, defval)
 	}
 
-	return convertAnswer(answer, defval)
+	return finalAnswer, err
 }
 
 func convertAnswer(answer string, defval interface{}) (interface{}, error) {
@@ -206,9 +206,6 @@ func convertAnswer(answer string, defval interface{}) (interface{}, error) {
 					typedSlice = append(typedSlice, tans)
 				}
 			}
-		// TODO test this case
-		default:
-			return nil, fmt.Errorf("unknow type in answer slice %s", reflect.TypeOf(defval.([]interface{})[0]).Kind().String())
 		}
 		typedAnswer = typedSlice
 	}
