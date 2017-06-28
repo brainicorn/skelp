@@ -8,3 +8,4 @@ import:
 - package: gopkg.in/src-d/go-git.v4
 testImport:
 - package: github.com/src-d/go-git-fixtures
+- package: github.com/joho/godotenv

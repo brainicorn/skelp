@@ -19,3 +19,4 @@ coverage.txt
 all.html
 skelp
 .coverage
+.env

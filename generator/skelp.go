@@ -29,11 +29,13 @@ type SkelpOptions struct {
 }
 
 func DefaultOptions() SkelpOptions {
+	bap := &provider.DefaultBasicAuthProvider{}
+
 	return SkelpOptions{
 		Download:          true,
 		CheckForUpdates:   true,
 		OverwriteProvider: provider.DefaultOverwriteProvider,
-		BasicAuthProvider: provider.DefaultBasicAuthProvider,
+		BasicAuthProvider: bap.ProvideAuth,
 	}
 }
 
