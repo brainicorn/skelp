@@ -55,7 +55,7 @@ func TestRepoGenSimple(t *testing.T) {
 	defData := map[string]interface{}{"projectName": projectNameRepo, "packageName": packageNameRepo}
 	dp := skelplate.NewDataProvider(defData)
 
-	err := gen.Generate("https://github.com/brainicorn/skelp-test-template", dp.DataProviderFunc)
+	err := gen.Generate("https://github.com/brainicorn/skelp-test-template.git", dp.DataProviderFunc)
 
 	if err != nil {
 		t.Errorf("generation error: %s", err)

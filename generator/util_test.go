@@ -1,6 +1,8 @@
 package generator
 
-import "testing"
+import (
+	"testing"
+)
 
 var aliasTests = []struct {
 	alias  string
@@ -76,4 +78,12 @@ func TestIsRepo(t *testing.T) {
 		}
 	}
 
+}
+
+func TestFilepathFromURLNotAURL(t *testing.T) {
+	_, err := FilepathFromURL("../somedir")
+
+	if err == nil {
+		t.Errorf("Expected error but was nil")
+	}
 }
