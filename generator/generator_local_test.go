@@ -13,18 +13,18 @@ import (
 )
 
 var (
-	readmeFmt  = "README.md"
-	projectFmt = "%s.md"
-	packageFmt = "%s/%s.go"
+	readmeFmtLocal  = "README.md"
+	projectFmtLocal = "%s.md"
+	packageFmtLocal = "%s/%s.go"
 
-	projectName    = "localgen"
-	newProjectName = "newlocalgen"
-	packageName    = "localpack"
+	projectNameLocal    = "localgen"
+	newProjectNameLocal = "newlocalgen"
+	packageNameLocal    = "localpack"
 
-	readmeExpected    = "## " + projectName + " by brainicorn"
-	newReadmeExpected = "## " + newProjectName + " by brainicorn"
-	projectExpected   = projectName + " contains package " + packageName
-	packageExpected   = "package " + packageName
+	readmeExpectedLocal    = "## " + projectNameLocal + " by brainicorn"
+	newReadmeExpectedLocal = "## " + newProjectNameLocal + " by brainicorn"
+	projectExpectedLocal   = projectNameLocal + " contains package " + packageNameLocal
+	packageExpectedLocal   = "package " + packageNameLocal
 )
 
 func TestLocalGenSimple(t *testing.T) {
@@ -37,7 +37,7 @@ func TestLocalGenSimple(t *testing.T) {
 
 	gen := New(opts)
 
-	defData := map[string]interface{}{"projectName": projectName, "packageName": packageName}
+	defData := map[string]interface{}{"projectName": projectNameLocal, "packageName": packageNameLocal}
 	dp := skelplate.NewDataProvider(defData)
 
 	err := gen.Generate("../testdata/generator/simple", dp.DataProviderFunc)
@@ -46,9 +46,9 @@ func TestLocalGenSimple(t *testing.T) {
 		t.Errorf("generation error: %s", err)
 	}
 
-	readmePath := filepath.Join(tmpDir, readmeFmt)
-	projectPath := filepath.Join(tmpDir, fmt.Sprintf(projectFmt, projectName))
-	packagePath := filepath.Join(tmpDir, fmt.Sprintf(packageFmt, packageName, packageName))
+	readmePath := filepath.Join(tmpDir, readmeFmtLocal)
+	projectPath := filepath.Join(tmpDir, fmt.Sprintf(projectFmtLocal, projectNameLocal))
+	packagePath := filepath.Join(tmpDir, fmt.Sprintf(packageFmtLocal, packageNameLocal, packageNameLocal))
 
 	readme, err := ioutil.ReadFile(readmePath)
 
@@ -68,16 +68,16 @@ func TestLocalGenSimple(t *testing.T) {
 		t.Errorf("can't open out file (%s): %s", packagePath, err)
 	}
 
-	if string(readme) != readmeExpected {
-		t.Errorf("contents don't match, have (%s), want (%s)", string(readme), readmeExpected)
+	if string(readme) != readmeExpectedLocal {
+		t.Errorf("contents don't match, have (%s), want (%s)", string(readme), readmeExpectedLocal)
 	}
 
-	if string(prjfile) != projectExpected {
-		t.Errorf("contents don't match, have (%s), want (%s)", string(prjfile), projectExpected)
+	if string(prjfile) != projectExpectedLocal {
+		t.Errorf("contents don't match, have (%s), want (%s)", string(prjfile), projectExpectedLocal)
 	}
 
-	if string(pkgfile) != packageExpected {
-		t.Errorf("contents don't match, have (%s), want (%s)", string(pkgfile), packageExpected)
+	if string(pkgfile) != packageExpectedLocal {
+		t.Errorf("contents don't match, have (%s), want (%s)", string(pkgfile), packageExpectedLocal)
 	}
 
 }
@@ -94,7 +94,7 @@ func TestLocalGenCWD(t *testing.T) {
 	opts := DefaultOptions()
 	gen := New(opts)
 
-	defData := map[string]interface{}{"projectName": projectName, "packageName": packageName}
+	defData := map[string]interface{}{"projectName": projectNameLocal, "packageName": packageNameLocal}
 	dp := skelplate.NewDataProvider(defData)
 
 	err := gen.Generate(absTemplateDir, dp.DataProviderFunc)
@@ -103,9 +103,9 @@ func TestLocalGenCWD(t *testing.T) {
 		t.Errorf("generation error: %s", err)
 	}
 
-	readmePath := filepath.Join(tmpDir, readmeFmt)
-	projectPath := filepath.Join(tmpDir, fmt.Sprintf(projectFmt, projectName))
-	packagePath := filepath.Join(tmpDir, fmt.Sprintf(packageFmt, packageName, packageName))
+	readmePath := filepath.Join(tmpDir, readmeFmtLocal)
+	projectPath := filepath.Join(tmpDir, fmt.Sprintf(projectFmtLocal, projectNameLocal))
+	packagePath := filepath.Join(tmpDir, fmt.Sprintf(packageFmtLocal, packageNameLocal, packageNameLocal))
 
 	readme, err := ioutil.ReadFile(readmePath)
 
@@ -125,16 +125,16 @@ func TestLocalGenCWD(t *testing.T) {
 		t.Errorf("can't open out file (%s): %s", packagePath, err)
 	}
 
-	if string(readme) != readmeExpected {
-		t.Errorf("contents don't match, have (%s), want (%s)", string(readme), readmeExpected)
+	if string(readme) != readmeExpectedLocal {
+		t.Errorf("contents don't match, have (%s), want (%s)", string(readme), readmeExpectedLocal)
 	}
 
-	if string(prjfile) != projectExpected {
-		t.Errorf("contents don't match, have (%s), want (%s)", string(prjfile), projectExpected)
+	if string(prjfile) != projectExpectedLocal {
+		t.Errorf("contents don't match, have (%s), want (%s)", string(prjfile), projectExpectedLocal)
 	}
 
-	if string(pkgfile) != packageExpected {
-		t.Errorf("contents don't match, have (%s), want (%s)", string(pkgfile), packageExpected)
+	if string(pkgfile) != packageExpectedLocal {
+		t.Errorf("contents don't match, have (%s), want (%s)", string(pkgfile), packageExpectedLocal)
 	}
 
 }
@@ -148,7 +148,7 @@ func TestLocalBlankTemplateID(t *testing.T) {
 	opts.OutputDir = tmpDir
 	gen := New(opts)
 
-	defData := map[string]interface{}{"projectName": projectName, "packageName": packageName}
+	defData := map[string]interface{}{"projectName": projectNameLocal, "packageName": packageNameLocal}
 	dp := skelplate.NewDataProvider(defData)
 
 	err := gen.Generate("", dp.DataProviderFunc)
@@ -167,7 +167,7 @@ func TestLocalTemplateRootNotFound(t *testing.T) {
 	opts.OutputDir = tmpDir
 	gen := New(opts)
 
-	defData := map[string]interface{}{"projectName": projectName, "packageName": packageName}
+	defData := map[string]interface{}{"projectName": projectNameLocal, "packageName": packageNameLocal}
 	dp := skelplate.NewDataProvider(defData)
 
 	err := gen.Generate("/does/not/exist", dp.DataProviderFunc)
@@ -187,7 +187,7 @@ func TestLocalTemplatesFolderNotFound(t *testing.T) {
 
 	gen := New(opts)
 
-	defData := map[string]interface{}{"projectName": projectName, "packageName": packageName}
+	defData := map[string]interface{}{"projectName": projectNameLocal, "packageName": packageNameLocal}
 	dp := skelplate.NewDataProvider(defData)
 
 	err := gen.Generate("../testdata/generator/notmplfolder", dp.DataProviderFunc)
@@ -207,7 +207,7 @@ func TestLocalGenBadTmpl(t *testing.T) {
 
 	gen := New(opts)
 
-	defData := map[string]interface{}{"projectName": projectName, "packageName": packageName}
+	defData := map[string]interface{}{"projectName": projectNameLocal, "packageName": packageNameLocal}
 	dp := skelplate.NewDataProvider(defData)
 
 	err := gen.Generate("../testdata/generator/badtmpl", dp.DataProviderFunc)
@@ -227,7 +227,7 @@ func TestLocalMissingDescriptor(t *testing.T) {
 
 	gen := New(opts)
 
-	defData := map[string]interface{}{"projectName": projectName, "packageName": packageName}
+	defData := map[string]interface{}{"projectName": projectNameLocal, "packageName": packageNameLocal}
 	dp := skelplate.NewDataProvider(defData)
 
 	err := gen.Generate("../testdata/generator/nodescriptor", dp.DataProviderFunc)
@@ -247,7 +247,7 @@ func TestNoOverwrite(t *testing.T) {
 
 	gen := New(opts)
 
-	defData := map[string]interface{}{"projectName": projectName, "packageName": packageName}
+	defData := map[string]interface{}{"projectName": projectNameLocal, "packageName": packageNameLocal}
 	dp := skelplate.NewDataProvider(defData)
 
 	err := gen.Generate("../testdata/generator/simple", dp.DataProviderFunc)
@@ -256,7 +256,7 @@ func TestNoOverwrite(t *testing.T) {
 		t.Errorf("generation error: %s", err)
 	}
 
-	readmePath := filepath.Join(tmpDir, readmeFmt)
+	readmePath := filepath.Join(tmpDir, readmeFmtLocal)
 
 	readme, err := ioutil.ReadFile(readmePath)
 
@@ -264,12 +264,12 @@ func TestNoOverwrite(t *testing.T) {
 		t.Errorf("can't open out file (%s): %s", readmePath, err)
 	}
 
-	if string(readme) != readmeExpected {
-		t.Errorf("contents don't match, have (%s), want (%s)", string(readme), readmeExpected)
+	if string(readme) != readmeExpectedLocal {
+		t.Errorf("contents don't match, have (%s), want (%s)", string(readme), readmeExpectedLocal)
 	}
 
 	// run again with different data
-	newData := map[string]interface{}{"projectName": newProjectName, "packageName": packageName}
+	newData := map[string]interface{}{"projectName": newProjectNameLocal, "packageName": packageNameLocal}
 	newDP := skelplate.NewDataProvider(newData)
 
 	err = gen.Generate("../testdata/generator/simple", newDP.DataProviderFunc)
@@ -284,8 +284,8 @@ func TestNoOverwrite(t *testing.T) {
 		t.Errorf("can't open out file (%s): %s", readmePath, err)
 	}
 
-	if string(newReadme) != readmeExpected {
-		t.Errorf("contents don't match, have (%s), want (%s)", string(newReadme), readmeExpected)
+	if string(newReadme) != readmeExpectedLocal {
+		t.Errorf("contents don't match, have (%s), want (%s)", string(newReadme), readmeExpectedLocal)
 	}
 }
 
@@ -298,7 +298,7 @@ func TestOverwrite(t *testing.T) {
 	opts.OutputDir = tmpDir
 	gen := New(opts)
 
-	defData := map[string]interface{}{"projectName": projectName, "packageName": packageName}
+	defData := map[string]interface{}{"projectName": projectNameLocal, "packageName": packageNameLocal}
 	dp := skelplate.NewDataProvider(defData)
 
 	err := gen.Generate("../testdata/generator/simple", dp.DataProviderFunc)
@@ -307,7 +307,7 @@ func TestOverwrite(t *testing.T) {
 		t.Errorf("generation error: %s", err)
 	}
 
-	readmePath := filepath.Join(tmpDir, readmeFmt)
+	readmePath := filepath.Join(tmpDir, readmeFmtLocal)
 
 	readme, err := ioutil.ReadFile(readmePath)
 
@@ -315,12 +315,12 @@ func TestOverwrite(t *testing.T) {
 		t.Errorf("can't open out file (%s): %s", readmePath, err)
 	}
 
-	if string(readme) != readmeExpected {
-		t.Errorf("contents don't match, have (%s), want (%s)", string(readme), readmeExpected)
+	if string(readme) != readmeExpectedLocal {
+		t.Errorf("contents don't match, have (%s), want (%s)", string(readme), readmeExpectedLocal)
 	}
 
 	// run again with different data
-	newData := map[string]interface{}{"projectName": newProjectName, "packageName": packageName}
+	newData := map[string]interface{}{"projectName": newProjectNameLocal, "packageName": packageNameLocal}
 	newDP := skelplate.NewDataProvider(newData)
 
 	opts.OverwriteProvider = func(rootDir, relFile string) bool { return true }
@@ -337,7 +337,7 @@ func TestOverwrite(t *testing.T) {
 		t.Errorf("can't open out file (%s): %s", readmePath, err)
 	}
 
-	if string(newReadme) != newReadmeExpected {
-		t.Errorf("contents don't match, have (%s), want (%s)", string(newReadme), newReadmeExpected)
+	if string(newReadme) != newReadmeExpectedLocal {
+		t.Errorf("contents don't match, have (%s), want (%s)", string(newReadme), newReadmeExpectedLocal)
 	}
 }

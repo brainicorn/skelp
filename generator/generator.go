@@ -17,7 +17,7 @@ const (
 	ErrBlankTemplateID           = "Template ID not provided"
 	ErrTemplateRootNotFound      = "Template root not found %s"
 	ErrSkelpTemplatesDirNotFound = "Skelp templates dir not found %s"
-	ErrCacheNotFoundNoDownload   = "Remote template not found and downloads are turned off: %s"
+	ErrCacheNotFoundNoDownload   = "Cached template not found and downloads are turned off: %s"
 )
 
 func (sg *SkelpGenerator) Generate(templateID string, dataProvider provider.DataProvider) error {
