@@ -5,6 +5,13 @@ import (
 	"time"
 )
 
+const (
+	typeSimple   = "simple"
+	typeMultiVal = "multival"
+	typeComplex  = "complex"
+	typeSelect   = "select"
+)
+
 type SkelplateDescriptor struct {
 	// TemplateAuthor is the author of the template.
 	TemplateAuthor string `json:"author"`
@@ -63,10 +70,7 @@ func (sv *SimpleVar) Default() interface{} {
 	return sv.DefaultVal
 }
 
-// TODO add a Keyed struct and remove min/max from complex.
-// Complex becomes just a base type. Keyed should also have a IsPassword field.
-
-// ComplexVar is an object that can express complex rules for capturing input.
+// ComplexVar applies restrictions to input.
 //
 // @jsonSchema(additionalProperties=false)
 type ComplexVar struct {
@@ -83,6 +87,9 @@ type ComplexVar struct {
 
 	// Max the maximum value (for numbers) or length (for strings)
 	Max float64 `json:"max,omitempty"`
+
+	// Password is a flag to turn on input masking for hiding passwords
+	Password bool `json:"password"`
 }
 
 // Selection represents a configurable "select box".
@@ -92,7 +99,7 @@ type ComplexVar struct {
 type Selection struct {
 	ComplexVar
 
-	// MultipleChoice designates whether multiple valuse may be chosen when the choices field is present.
+	// MultipleChoice designates whether multiple values may be chosen when the choices field is present.
 	//
 	// @jsonSchema(required=true)
 	MultipleChoice bool `json:"mutlichoice"`
@@ -142,44 +149,34 @@ func (td *SkelplateDescriptor) UnmarshalJSON(data []byte) error {
 				for _, vv := range vars {
 					//it's an object
 					if vvmap, ok := vv.(map[string]interface{}); ok {
-						if _, selok := vvmap["choices"]; selok {
-							var sel Selection
-							var seljs []byte
-							seljs, err = json.Marshal(vv)
-							if err == nil {
-								err = json.Unmarshal(seljs, &sel)
+						var jsbytes []byte
+						jsbytes, err = json.Marshal(vv)
+
+						if err == nil {
+							switch typeOfVar(vvmap) {
+							case typeSelect:
+								var typedVar Selection
+								err = json.Unmarshal(jsbytes, &typedVar)
 								if err == nil {
-									varSlice = append(varSlice, &sel)
+									varSlice = append(varSlice, &typedVar)
 								}
-							}
-						} else if _, mvok := vvmap["mutlival"]; mvok {
-							var mv MultiValue
-							var mvjs []byte
-							mvjs, err = json.Marshal(vv)
-							if err == nil {
-								err = json.Unmarshal(mvjs, &mv)
+							case typeMultiVal:
+								var typedVar MultiValue
+								err = json.Unmarshal(jsbytes, &typedVar)
 								if err == nil {
-									varSlice = append(varSlice, &mv)
+									varSlice = append(varSlice, &typedVar)
 								}
-							}
-						} else if len(vvmap) > 2 {
-							var cplx ComplexVar
-							var cplxjs []byte
-							cplxjs, err = json.Marshal(vv)
-							if err == nil {
-								err = json.Unmarshal(cplxjs, &cplx)
+							case typeComplex:
+								var typedVar ComplexVar
+								err = json.Unmarshal(jsbytes, &typedVar)
 								if err == nil {
-									varSlice = append(varSlice, &cplx)
+									varSlice = append(varSlice, &typedVar)
 								}
-							}
-						} else {
-							var smp SimpleVar
-							var smpjs []byte
-							smpjs, err = json.Marshal(vv)
-							if err == nil {
-								err = json.Unmarshal(smpjs, &smp)
+							case typeSimple:
+								var typedVar SimpleVar
+								err = json.Unmarshal(jsbytes, &typedVar)
 								if err == nil {
-									varSlice = append(varSlice, &smp)
+									varSlice = append(varSlice, &typedVar)
 								}
 							}
 						}
@@ -192,4 +189,24 @@ func (td *SkelplateDescriptor) UnmarshalJSON(data []byte) error {
 	}
 
 	return err
+}
+
+func typeOfVar(varmap map[string]interface{}) string {
+	if _, ok := varmap["choices"]; ok {
+		return typeSelect
+	}
+
+	if _, ok := varmap["mutlival"]; ok {
+		return typeMultiVal
+	}
+
+	rkeys := []string{"min", "max", "password", "prompt", "required"}
+	for _, k := range rkeys {
+		if _, ok := varmap[k]; ok {
+			return typeComplex
+		}
+	}
+
+	return typeSimple
+
 }

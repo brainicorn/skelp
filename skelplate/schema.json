@@ -4,7 +4,7 @@
   "definitions": {
     "github_com-brainicorn-skelp-skelplate-ComplexVar": {
       "type": "object",
-      "title": "ComplexVar is an object that can express complex rules for capturing input.",
+      "title": "ComplexVar applies restrictions to input.",
       "properties": {
         "default": {
           "type": "object",
@@ -41,6 +41,10 @@
           "type": "string",
           "title": "Name is the name of the variable.",
           "description": "The name can be a golang template and can use values gathered from previous\nvariables in the variables array."
+        },
+        "password": {
+          "type": "boolean",
+          "title": "Password is a flag to turn on input masking for hiding passwords"
         },
         "prompt": {
           "type": "string",
@@ -106,6 +110,10 @@
           "title": "Name is the name of the variable.",
           "description": "The name can be a golang template and can use values gathered from previous\nvariables in the variables array."
         },
+        "password": {
+          "type": "boolean",
+          "title": "Password is a flag to turn on input masking for hiding passwords"
+        },
         "prompt": {
           "type": "string",
           "title": "Prompt the string to display when asking for a value."
@@ -167,12 +175,16 @@
         },
         "mutlichoice": {
           "type": "boolean",
-          "title": "MultipleChoice designates whether multiple valuse may be chosen when the choices field is present."
+          "title": "MultipleChoice designates whether multiple values may be chosen when the choices field is present."
         },
         "name": {
           "type": "string",
           "title": "Name is the name of the variable.",
           "description": "The name can be a golang template and can use values gathered from previous\nvariables in the variables array."
+        },
+        "password": {
+          "type": "boolean",
+          "title": "Password is a flag to turn on input masking for hiding passwords"
         },
         "prompt": {
           "type": "string",
@@ -242,6 +254,10 @@
       "title": "TemplateCreated is the date the template was created.",
       "format": "date-time"
     },
+    "description": {
+      "type": "string",
+      "title": "TemplateDesc is the description of the template."
+    },
     "modified": {
       "type": "string",
       "title": "TemplateModified is the date the template was last modified.",
@@ -249,7 +265,7 @@
     },
     "repository": {
       "type": "string",
-      "title": "TemplateURL is the url of the template."
+      "title": "TemplateRepo is the url of the template."
     },
     "variables": {
       "type": "array",

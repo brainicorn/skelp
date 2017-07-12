@@ -14,6 +14,10 @@ func DefaultOverwriteProvider(rootDir, relFile string) bool {
 	return false
 }
 
+func AlwaysOverwriteProvider(rootDir, relFile string) bool {
+	return true
+}
+
 type DefaultBasicAuthProvider struct {
 	BeforePrompt func()
 }

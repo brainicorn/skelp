@@ -71,6 +71,20 @@ func TestAddInvalidTemplate(t *testing.T) {
 
 }
 
+func TestRemoveInvalidAlias(t *testing.T) {
+	opts := DefaultOptions()
+	opts.OutputDir = "/tmp"
+
+	gen := New(opts)
+
+	err := gen.RemoveAlias("http://some.url")
+
+	if err == nil || !strings.HasPrefix(err.Error(), "Invalid alias ") {
+		t.Errorf("wrong error: have (%s), want (%s)", err, "Invalid alias ")
+	}
+
+}
+
 func TestAdHocAliasFileCreation(t *testing.T) {
 	tmpDir, _ := ioutil.TempDir("", "skelp-custom-home")
 	defer os.RemoveAll(tmpDir)

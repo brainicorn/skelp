@@ -36,7 +36,7 @@ func promptForVariable(tvar TemplateVariable, varname string, dval interface{}, 
 	case *ComplexVar:
 		ttv := tvar.(*ComplexVar)
 		configurePrompt(&prompt, *ttv, varname, promptEnterValue, dval)
-		ask = &prompter.KeyedInput{Prompt: prompt, IsConfirm: defIsBool}
+		ask = &prompter.KeyedInput{Prompt: prompt, IsConfirm: defIsBool, IsPassword: ttv.Password}
 
 	case *MultiValue:
 		ttv := tvar.(*MultiValue)
@@ -97,14 +97,12 @@ func configureDefaultAndValidators(prompt *prompter.Prompt, cv ComplexVar, defva
 		}
 
 		if cv.Min > 0 || cv.Max > 0 {
-			fmt.Println("got min/max")
 			mm := &prompter.MinMaxString{
 				Min: cv.Min,
 				Max: cv.Max,
 			}
 			prompt.Validators = append(prompt.Validators, mm.CheckMin)
 			prompt.Validators = append(prompt.Validators, mm.CheckMax)
-			fmt.Println("validators", prompt.Validators)
 		}
 	case float64:
 		defstring = strconv.FormatFloat(defval.(float64), 'f', -1, 64)

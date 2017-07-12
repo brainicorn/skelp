@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/brainicorn/skelp/skelputil"
 )
@@ -39,6 +40,7 @@ func (sg *SkelpGenerator) IDForAlias(alias string) (string, error) {
 
 func (sg *SkelpGenerator) AddAlias(alias, fileOrUrl string) error {
 	var err error
+	var aliasFile string
 	var aliasPath string
 
 	if !IsAlias(alias) {
@@ -49,25 +51,62 @@ func (sg *SkelpGenerator) AddAlias(alias, fileOrUrl string) error {
 		return fmt.Errorf(ErrInvalidAliasTemplate, fileOrUrl)
 	}
 
+	aliasFile, err = sg.initAliasRegistry()
+
+	if err == nil {
+		aliasPath = fileOrUrl
+
+		if IsFilePath(aliasPath) && !strings.HasPrefix(aliasPath, "file://") {
+			aliasPath, err = filepath.Abs(aliasPath)
+		}
+
+		if err == nil {
+			sg.aliases[alias] = aliasPath
+		}
+	}
+
+	return sg.saveAliases(aliasFile, err)
+}
+
+func (sg *SkelpGenerator) RemoveAlias(alias string) error {
+	var err error
+	var aliasPath string
+
+	if !IsAlias(alias) {
+		return fmt.Errorf(ErrInvalidAlias, alias)
+	}
+
 	aliasPath, err = sg.initAliasRegistry()
 
 	if err == nil {
-		sg.aliases[alias] = fileOrUrl
+		delete(sg.aliases, alias)
 	}
 
-	return sg.saveAliases(aliasPath)
+	return sg.saveAliases(aliasPath, err)
 }
 
-func (sg *SkelpGenerator) saveAliases(path string) error {
+func (sg *SkelpGenerator) AliasMap() (map[string]string, error) {
+	var err error
+
+	_, err = sg.initAliasRegistry()
+
+	return sg.aliases, err
+}
+
+func (sg *SkelpGenerator) saveAliases(path string, initialErr error) error {
 	var err error
 	var file *os.File
+
 	aliases := aliasRegistry{}
+	err = initialErr
 
-	if sg.aliases != nil {
-		aliases = sg.aliases
+	if err == nil {
+		if sg.aliases != nil {
+			aliases = sg.aliases
+		}
+
+		file, err = os.Create(path)
 	}
-
-	file, err = os.Create(path)
 
 	if err == nil {
 		encoder := gob.NewEncoder(file)
@@ -102,13 +141,13 @@ func (sg *SkelpGenerator) initAliasRegistry() (string, error) {
 	var err error
 	var skelpHome, aliasesPath string
 
-	skelpHome, err = sg.initSkelpHome()
+	skelpHome, err = sg.InitSkelpHome()
 
 	if err == nil {
 		aliasesPath = filepath.Join(skelpHome, skelpAliasesFilename)
 
 		if !skelputil.PathExists(aliasesPath) {
-			err = sg.saveAliases(aliasesPath)
+			err = sg.saveAliases(aliasesPath, err)
 		}
 
 		if err == nil {

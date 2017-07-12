@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/brainicorn/skelp/provider"
 	"github.com/brainicorn/skelp/skelplate"
 )
 
@@ -323,7 +324,7 @@ func TestOverwrite(t *testing.T) {
 	newData := map[string]interface{}{"projectName": newProjectNameLocal, "packageName": packageNameLocal}
 	newDP := skelplate.NewDataProvider(newData)
 
-	opts.OverwriteProvider = func(rootDir, relFile string) bool { return true }
+	opts.OverwriteProvider = provider.AlwaysOverwriteProvider
 	gen.skelpOptions = opts
 	err = gen.Generate("../testdata/generator/simple", newDP.DataProviderFunc)
 

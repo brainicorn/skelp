@@ -60,7 +60,7 @@ func (sg *SkelpGenerator) absCacheDirFromURL(u string) (string, error) {
 	var err error
 	var skelpHome, cacheDir, templateDir, absDir string
 
-	skelpHome, err = sg.initSkelpHome()
+	skelpHome, err = sg.InitSkelpHome()
 
 	if err == nil {
 		cacheDir = filepath.Join(skelpHome, skelpTemplateCacheDirname)
@@ -80,7 +80,7 @@ func (sg *SkelpGenerator) absCacheDirFromURL(u string) (string, error) {
 	return absDir, err
 }
 
-func (sg *SkelpGenerator) initSkelpHome() (string, error) {
+func (sg *SkelpGenerator) InitSkelpHome() (string, error) {
 	var err error
 	var homeDir string
 	var path string
