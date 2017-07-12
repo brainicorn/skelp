@@ -18,7 +18,7 @@ var (
 	skelpdirFlag string
 )
 
-func newSkelpCommand() *cobra.Command {
+func NewSkelpCommand() *cobra.Command {
 
 	skelpCmd := &cobra.Command{
 		Use:   "skelp",
@@ -67,7 +67,7 @@ func Execute(args []string, out io.Writer) int {
 	var cmd *cobra.Command
 	var err error
 	exitcode := 0
-	skelpCmd := newSkelpCommand()
+	skelpCmd := NewSkelpCommand()
 	skelpCmd.SetArgs(args)
 
 	if out != nil {
