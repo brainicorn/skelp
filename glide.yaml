@@ -6,6 +6,7 @@ import:
 - package: github.com/src-d/gcfg
 - package: github.com/AlecAivazis/survey
 - package: gopkg.in/src-d/go-git.v4
+- package: github.com/xeipuuv/gojsonschema
 testImport:
 - package: github.com/src-d/go-git-fixtures
 - package: github.com/joho/godotenv

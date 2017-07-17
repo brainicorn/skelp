@@ -58,7 +58,8 @@ type SimpleVar struct {
 	Varname string `json:"name,omitempty"`
 
 	// Default the default value (can be blank).
-	// @jsonSchema(required=true, anyOf=["string","number","integer","boolean","array"])
+	//
+	// @jsonSchema(required=true, type=["string","number","integer","boolean","array"])
 	DefaultVal interface{} `json:"default"`
 }
 

@@ -7,26 +7,15 @@
       "title": "ComplexVar applies restrictions to input.",
       "properties": {
         "default": {
-          "type": "object",
+          "type": [
+            "string",
+            "number",
+            "integer",
+            "boolean",
+            "array"
+          ],
           "title": "Default the default value (can be blank).",
           "description": "\n",
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "integer"
-            },
-            {
-              "type": "boolean"
-            },
-            {
-              "type": "array"
-            }
-          ],
           "additionalProperties": false
         },
         "max": {
@@ -71,26 +60,15 @@
           "title": "AddPrompt is the string to display when asking if another value should be entered."
         },
         "default": {
-          "type": "object",
+          "type": [
+            "string",
+            "number",
+            "integer",
+            "boolean",
+            "array"
+          ],
           "title": "Default the default value (can be blank).",
           "description": "\n",
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "integer"
-            },
-            {
-              "type": "boolean"
-            },
-            {
-              "type": "array"
-            }
-          ],
           "additionalProperties": false
         },
         "max": {
@@ -143,26 +121,15 @@
           }
         },
         "default": {
-          "type": "object",
+          "type": [
+            "string",
+            "number",
+            "integer",
+            "boolean",
+            "array"
+          ],
           "title": "Default the default value (can be blank).",
           "description": "\n",
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "integer"
-            },
-            {
-              "type": "boolean"
-            },
-            {
-              "type": "array"
-            }
-          ],
           "additionalProperties": false
         },
         "max": {
@@ -209,26 +176,15 @@
       "description": "\n",
       "properties": {
         "default": {
-          "type": "object",
+          "type": [
+            "string",
+            "number",
+            "integer",
+            "boolean",
+            "array"
+          ],
           "title": "Default the default value (can be blank).",
           "description": "\n",
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "integer"
-            },
-            {
-              "type": "boolean"
-            },
-            {
-              "type": "array"
-            }
-          ],
           "additionalProperties": false
         },
         "name": {
@@ -275,16 +231,20 @@
         "title": "TemplateVariable is the base interface for a variable @jsonSchema( anyOf=[\"github.com/brainicorn/skelp/skelplate/SimpleVar\" ,\"github.com/brainicorn/skelp/skelplate/ComplexVar\" ,\"github.com/brainicorn/skelp/skelplate/Selection\" ,\"github.com/brainicorn/skelp/skelplate/MultiValue\"] )",
         "anyOf": [
           {
-            "$ref": "#/definitions/github_com-brainicorn-skelp-skelplate-SimpleVar"
+            "$ref": "#/definitions/github_com-brainicorn-skelp-skelplate-SimpleVar",
+            "type": ""
           },
           {
-            "$ref": "#/definitions/github_com-brainicorn-skelp-skelplate-ComplexVar"
+            "$ref": "#/definitions/github_com-brainicorn-skelp-skelplate-ComplexVar",
+            "type": ""
           },
           {
-            "$ref": "#/definitions/github_com-brainicorn-skelp-skelplate-Selection"
+            "$ref": "#/definitions/github_com-brainicorn-skelp-skelplate-Selection",
+            "type": ""
           },
           {
-            "$ref": "#/definitions/github_com-brainicorn-skelp-skelplate-MultiValue"
+            "$ref": "#/definitions/github_com-brainicorn-skelp-skelplate-MultiValue",
+            "type": ""
           }
         ]
       }

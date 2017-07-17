@@ -3,6 +3,7 @@ package skelplate
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -11,6 +12,7 @@ import (
 	"text/template"
 
 	"github.com/brainicorn/skelp/skelputil"
+	"github.com/xeipuuv/gojsonschema"
 )
 
 const (
@@ -38,6 +40,7 @@ func (sdp *SkelplateDataProvider) DataProviderFunc(templateRoot string) (interfa
 	var data map[string]interface{}
 	var descriptorBytes []byte
 	var skelplate SkelplateDescriptor
+	var schemaValidationResult *gojsonschema.Result
 
 	jsonPath := filepath.Join(templateRoot, skelpFilename)
 	if !skelputil.PathExists(jsonPath) {
@@ -46,6 +49,23 @@ func (sdp *SkelplateDataProvider) DataProviderFunc(templateRoot string) (interfa
 
 	if err == nil {
 		descriptorBytes, err = ioutil.ReadFile(jsonPath)
+	}
+
+	if err == nil {
+		schemaLoader := gojsonschema.NewStringLoader(GithubComBrainicornSkelpSkelplateSkelplateDescriptor)
+		docLoader := gojsonschema.NewBytesLoader(descriptorBytes)
+
+		schemaValidationResult, err = gojsonschema.Validate(schemaLoader, docLoader)
+
+		if err == nil && len(schemaValidationResult.Errors()) > 0 {
+			var errBuf bytes.Buffer
+			errBuf.WriteString("Error validating skelp descriptor:\n")
+			for _, re := range schemaValidationResult.Errors() {
+				errBuf.WriteString(fmt.Sprintf("  - %s\n", re))
+			}
+
+			err = errors.New(errBuf.String())
+		}
 	}
 
 	if err == nil {

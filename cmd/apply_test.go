@@ -25,6 +25,29 @@ func TestApply(t *testing.T) {
 	}
 }
 
+func TestApplyBadDescriptor(t *testing.T) {
+	out := new(bytes.Buffer)
+	tmpHomeDir, _ := ioutil.TempDir("", "skelp-custom-home")
+	defer os.RemoveAll(tmpHomeDir)
+
+	tmpOutputDir, _ := ioutil.TempDir("", "skelp-output")
+	defer os.RemoveAll(tmpOutputDir)
+
+	code := Execute([]string{"apply", "../testdata/generator/baddescriptor", "--no-color", "--force", "--offline", "--homedir", tmpHomeDir, "-o", tmpOutputDir, "-d", "../testdata/generator/simple-data.json"}, out)
+
+	if code != 1 {
+		t.Errorf("apply should have errored")
+	}
+
+	lines := strings.Split(out.String(), "\n")
+	if lines[0] != "Error validating skelp descriptor:" {
+		fmt.Println(lines[0])
+		fmt.Println("........................")
+		fmt.Println("Error validating skelp descriptor:")
+		t.Errorf("apply error does not match")
+	}
+}
+
 func TestApplyMissingArg(t *testing.T) {
 	out := new(bytes.Buffer)
 	tmpDir, _ := ioutil.TempDir("", "skelp-custom-home")
