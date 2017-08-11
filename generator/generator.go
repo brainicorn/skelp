@@ -135,6 +135,7 @@ func (sg *SkelpGenerator) doDownload(u, path string) error {
 func (sg *SkelpGenerator) checkForUpdates(u, path string) error {
 	var err error
 	var repo *git.Repository
+	var wt *git.Worktree
 
 	am := AuthMethodForURL(u)
 	repo, err = git.PlainOpen(path)
@@ -144,7 +145,12 @@ func (sg *SkelpGenerator) checkForUpdates(u, path string) error {
 			Auth:     am,
 			Progress: os.Stdout,
 		}
-		err = repo.Pull(&opts)
+
+		wt, err = repo.Worktree()
+
+		if err == nil {
+			err = wt.Pull(&opts)
+		}
 
 		if err != nil {
 			if err == transport.ErrAuthenticationRequired {
@@ -152,7 +158,7 @@ func (sg *SkelpGenerator) checkForUpdates(u, path string) error {
 				if sg.skelpOptions.BasicAuthProvider != nil {
 					user, pass := sg.skelpOptions.BasicAuthProvider()
 					opts.Auth = http.NewBasicAuth(user, pass)
-					err = repo.Pull(&opts)
+					err = wt.Pull(&opts)
 				}
 			}
 
