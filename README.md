@@ -167,7 +167,22 @@ You can see the current aliases registered by running:
 
 ``` skelp alias list ```
 
-## Contributing
+## Templates, Templates, Templates
+
+Looking for a template? Have an awesome template you'd like to contribute?
+
+Skelp is a brand new project and we're trying to gather quality templates as fast as we can...
+
+If you're looking for a template to use with skelp, check out our [List of Known Templates](template-list.md)
+
+If you have a template that you'd like to contribute and have listed, please [create an issue](https://github.com/brainicorn/skelp/issues) and include the following:
+- URL of the template repository
+- Name of the template
+- Short description of the template
+- (optional) URL to an avatar image for your template
+- (optional) Any notes you feel users should know about using your template
+
+## Contributing to Skelp
 Pull requests, issues and comments welcome.
 
 1. Fork it
