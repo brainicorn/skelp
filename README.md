@@ -44,9 +44,9 @@ This will download a simple template that generates a very basic README file.
 And you can always type ```skelp help ``` to see all of skelp's commands/options.
 
 #### For detailed information:
-- [User Guide](user-guide.md)
-- [Template Guide](template-guide.md)
-- [Library Guide](library-guide.md)
+- [User Guide](doc/user-guide.md)
+- [Template Guide](doc/template-guide.md)
+- [Library Guide](doc/library-guide.md)
 
 ## Features
 
@@ -101,7 +101,7 @@ And you can always type ```skelp help ``` to see all of skelp's commands/options
 
 This section just gives a basic overview of the most commonly used commands.
 
-For full command details and options, see [The User Guide](user-guide.md)
+For full command details and options, see [The User Guide](doc/user-guide.md)
 
 ### Enabling Bash Completion
 
@@ -173,7 +173,7 @@ Looking for a template? Have an awesome template you'd like to contribute?
 
 Skelp is a brand new project and we're trying to gather quality templates as fast as we can...
 
-If you're looking for a template to use with skelp, check out our [List of Known Templates](template-list.md)
+If you're looking for a template to use with skelp, check out our [List of Known Templates](doc/template-list.md)
 
 If you have a template that you'd like to contribute and have listed, please [create an issue](https://github.com/brainicorn/skelp/issues) and include the following:
 - URL of the template repository

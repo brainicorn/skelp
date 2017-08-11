@@ -12,7 +12,6 @@ pid
 dist
 Godeps
 .glide
-glide.lock
 vendor/
 profile.out
 coverage.txt
