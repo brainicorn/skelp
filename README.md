@@ -183,7 +183,7 @@ If you have a template that you'd like to contribute and have listed, please [cr
 - (optional) Any notes you feel users should know about using your template
 
 ## Contributing to Skelp
-Pull requests, issues and comments welcome.
+Pull requests, issues and comments welcome. Please read our [Code of Conduct](doc/CODE_OF_CONDUCT.md)
 
 1. Fork it
 1. Create your feature branch (git checkout -b my-new-feature)
