@@ -15,5 +15,6 @@ func main() {
 		dir = os.Args[1]
 	}
 	root := cmd.NewSkelpCommand()
+	root.DisableAutoGenTag = true
 	doc.GenMarkdownTree(root, dir)
 }

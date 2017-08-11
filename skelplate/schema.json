@@ -231,20 +231,16 @@
         "title": "TemplateVariable is the base interface for a variable @jsonSchema( anyOf=[\"github.com/brainicorn/skelp/skelplate/SimpleVar\" ,\"github.com/brainicorn/skelp/skelplate/ComplexVar\" ,\"github.com/brainicorn/skelp/skelplate/Selection\" ,\"github.com/brainicorn/skelp/skelplate/MultiValue\"] )",
         "anyOf": [
           {
-            "$ref": "#/definitions/github_com-brainicorn-skelp-skelplate-SimpleVar",
-            "type": ""
+            "$ref": "#/definitions/github_com-brainicorn-skelp-skelplate-SimpleVar"
           },
           {
-            "$ref": "#/definitions/github_com-brainicorn-skelp-skelplate-ComplexVar",
-            "type": ""
+            "$ref": "#/definitions/github_com-brainicorn-skelp-skelplate-ComplexVar"
           },
           {
-            "$ref": "#/definitions/github_com-brainicorn-skelp-skelplate-Selection",
-            "type": ""
+            "$ref": "#/definitions/github_com-brainicorn-skelp-skelplate-Selection"
           },
           {
-            "$ref": "#/definitions/github_com-brainicorn-skelp-skelplate-MultiValue",
-            "type": ""
+            "$ref": "#/definitions/github_com-brainicorn-skelp-skelplate-MultiValue"
           }
         ]
       }
