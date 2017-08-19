@@ -3,6 +3,8 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/brainicorn/skelp)](https://goreportcard.com/report/github.com/brainicorn/skelp)
 [![GoDoc](https://godoc.org/github.com/brainicorn/skelp?status.svg)](https://godoc.org/github.com/brainicorn/skelp)
 
+[![Skelp Logo](doc/skelp-logo.svg)
+
 # skelp #
 
 #### skeleton project generator and template runner
