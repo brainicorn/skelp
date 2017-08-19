@@ -5,8 +5,6 @@
 
 [![skelplogo](https://rawgit.com/brainicorn/skelp/master/doc/skelp-logo-plain.png)](https://github.com/brainicorn/skelp)
 
-# skelp #
-
 #### skeleton project generator and template runner
 
 ## Overview
