@@ -3,7 +3,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/brainicorn/skelp)](https://goreportcard.com/report/github.com/brainicorn/skelp)
 [![GoDoc](https://godoc.org/github.com/brainicorn/skelp?status.svg)](https://godoc.org/github.com/brainicorn/skelp)
 
-[![skelp logo](https://rawgit.com/brainicorn/skelp/master/doc/skelp-logo-plain.svg)](https://github.com/brainicorn/skelp)
+[![skelp logo](https://rawgit.com/brainicorn/skelp/master/doc/skelp-logo-plain.svgz)](https://github.com/brainicorn/skelp)
 
 # skelp #
 
