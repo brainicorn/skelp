@@ -1,1 +1,0 @@
-# Skelp User Guide

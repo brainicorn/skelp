@@ -56,6 +56,7 @@ func validateRootFlags(cmd *cobra.Command, args []string) error {
 }
 
 func addCommandsToRoot(cmd *cobra.Command) {
+	cmd.AddCommand(newVersionCommand())
 	cmd.AddCommand(newApplyCommand())
 	cmd.AddCommand(newAliasCommand())
 	cmd.AddCommand(newBashmeCommand())
