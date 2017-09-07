@@ -44,7 +44,7 @@ This will download a simple template that generates a very basic README file.
 And you can always type ```skelp help ``` to see all of skelp's commands/options.
 
 #### For detailed information:
-- [CLI Reference](doc/cli-ref.md)
+- [CLI Reference](doc/skelp.md)
 - [Template Guide](doc/template-guide.md)
 - [Library Guide](doc/library-guide.md)
 
@@ -101,7 +101,7 @@ And you can always type ```skelp help ``` to see all of skelp's commands/options
 
 This section describes how to use the various commands within the CLI.
 
-For full command details and options, see [CLI Reference](doc/cli-ref.md)
+For full command details and options, see [CLI Reference](doc/skelp.md)
 
 ### Enabling Bash Completion
 
