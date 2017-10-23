@@ -1,8 +1,6 @@
 package prompter
 
 import (
-	"fmt"
-
 	"github.com/AlecAivazis/survey/core"
 )
 
@@ -24,7 +22,6 @@ type Prompt struct {
 func (p *Prompt) Validate(val string) error {
 	var err error
 	for _, v := range p.Validators {
-		fmt.Println("calling validator")
 		err = v(val)
 
 		if err != nil {

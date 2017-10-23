@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/AlecAivazis/survey/core"
 	"github.com/brainicorn/skelp/generator"
 	"github.com/brainicorn/skelp/skelputil"
 	"github.com/mgutz/ansi"
@@ -67,6 +68,8 @@ func Execute(args []string, out io.Writer) int {
 
 	var cmd *cobra.Command
 	var err error
+
+	core.QuestionIcon = ">"
 	exitcode := 0
 	skelpCmd := NewSkelpCommand()
 	skelpCmd.SetArgs(args)

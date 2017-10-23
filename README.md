@@ -7,6 +7,12 @@
 
 #### skeleton project generator and template runner
 
+# TODO:
+  * add ability to use pre-configured data files in/from template repo
+  * add ability to alias with input data variants
+  * support complex object values (use variables array)
+
+
 ## Overview
 
 

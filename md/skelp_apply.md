@@ -15,6 +15,7 @@ skelp apply [git-url|file-path|alias] [flags]
 
 ```
   -d, --data string     path to a json data file for filling in template data
+      --dry-run         just gather data, no generation (for testing)
   -f, --force           force overwriting of files without asking
   -h, --help            help for apply
       --offline         turns off auto-downloading/updating of templates

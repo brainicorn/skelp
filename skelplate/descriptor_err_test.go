@@ -18,43 +18,59 @@ var tmplErrTests = []struct {
 }{
 	{
 		`{
-			"author": "brainicorn",
-			"variables":[{"name":"{{.SomeVar", "default":"ipa"}]
-		}`,
-		nil,
-		"unable to parse variable name template:",
-	},
-	{
-		`{
-			"author": "brainicorn",
-			"variables":[{"name":"beer", "default":"{{ipa"}]
-		}`,
+					"author": "brainicorn",
+					"variables":[{"name":"beer", "default":"{{ipa"}]
+				}`,
 		nil,
 		"unable to parse variable default template:",
 	},
 	{
 		`{
-			"author": "brainicorn",
-			"variables":[{"name":"beer", "default":["{{ipa"]}]
-		}`,
+					"author": "brainicorn",
+					"variables":[{"name":"beer", "default":["{{ipa"]}]
+				}`,
 		nil,
 		"unable to parse variable default template:",
 	},
 	{
 		`{
-			"author": "brainicorn",
-			"variables":[{"name":"beer", "default":""}]
-		}`,
+					"author": "brainicorn",
+					"variables":[{"name":"beer", "default":""}]
+				}`,
 		map[string]interface{}{"beer": "{{ipa"},
 		"unable to parse data template:",
 	},
 	{
 		`{
-				"author": "brainicorn",
-				"variables":[{"name":"beer", "default":""}]
-			}`,
+						"author": "brainicorn",
+						"variables":[{"name":"beer", "default":""}]
+					}`,
 		map[string]interface{}{"beer": float64(1)},
 		"invalid type for provided data entry",
+	},
+	{
+		`{
+					"author": "brainicorn",
+					"variables":[{"name":"beer", "default":"yes", "disabled":"{{ipa"}]
+				}`,
+		map[string]interface{}{"beer": "yes"},
+		"unable to parse variable disabled template:",
+	},
+	{
+		`{
+					"author": "brainicorn",
+					"variables":[{"name":"beer", "default":"yes", "choices":["{{ipa"]}]
+				}`,
+		map[string]interface{}{"beer": "yes"},
+		"unable to parse choice template:",
+	},
+	{
+		`{
+				"author": "brainicorn",
+				"variables":[{"name":"beer", "default":"yes", "disabled":"%"}]
+			}`,
+		map[string]interface{}{"beer": "yes"},
+		"unable to convert disabled value to a boolean:",
 	},
 }
 

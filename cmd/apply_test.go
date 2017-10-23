@@ -25,6 +25,22 @@ func TestApply(t *testing.T) {
 	}
 }
 
+func TestApplyDryRun(t *testing.T) {
+	out := new(bytes.Buffer)
+	tmpHomeDir, _ := ioutil.TempDir("", "skelp-custom-home")
+	defer os.RemoveAll(tmpHomeDir)
+
+	tmpOutputDir, _ := ioutil.TempDir("", "skelp-output")
+	defer os.RemoveAll(tmpOutputDir)
+
+	code := Execute([]string{"apply", "../testdata/generator/simple", "--no-color", "--force", "--offline", "--dry-run", "-d", "../testdata/generator/simple-data.json"}, out)
+
+	if code != 0 {
+		fmt.Println(out)
+		t.Errorf("apply should not have errored")
+	}
+}
+
 func TestApplyBadDescriptor(t *testing.T) {
 	out := new(bytes.Buffer)
 	tmpHomeDir, _ := ioutil.TempDir("", "skelp-custom-home")
@@ -40,6 +56,7 @@ func TestApplyBadDescriptor(t *testing.T) {
 	}
 
 	lines := strings.Split(out.String(), "\n")
+	fmt.Println("err lines: ", lines)
 	if lines[0] != "Error validating skelp descriptor:" {
 		fmt.Println(lines[0])
 		fmt.Println("........................")

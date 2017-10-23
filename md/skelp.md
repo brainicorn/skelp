@@ -24,4 +24,5 @@ an existing project.
 * [skelp alias](skelp_alias.md)	 - manage aliases for urls / filepaths
 * [skelp apply](skelp_apply.md)	 - Apply a template to the current directory
 * [skelp bashme](skelp_bashme.md)	 - Creates a bash completion file for skelp
+* [skelp version](skelp_version.md)	 - Displays skelp version info
 

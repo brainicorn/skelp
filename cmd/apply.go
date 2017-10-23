@@ -22,6 +22,7 @@ var (
 	dataFile  string
 	offline   bool
 	force     bool
+	dryrun    bool
 )
 
 func newApplyCommand() *cobra.Command {
@@ -37,6 +38,7 @@ func newApplyCommand() *cobra.Command {
 	applyCmd.Flags().StringVarP(&dataFile, "data", "d", "", "path to a json data file for filling in template data")
 	applyCmd.Flags().BoolVar(&offline, "offline", false, "turns off auto-downloading/updating of templates")
 	applyCmd.Flags().BoolVarP(&force, "force", "f", false, "force overwriting of files without asking")
+	applyCmd.Flags().BoolVar(&dryrun, "dry-run", false, "just gather data, no generation (for testing)")
 
 	return applyCmd
 }
@@ -71,6 +73,10 @@ func executeApply(cmd *cobra.Command, args []string) error {
 	if offline {
 		opts.CheckForUpdates = false
 		opts.Download = false
+	}
+
+	if dryrun {
+		opts.DryRun = true
 	}
 
 	if force {

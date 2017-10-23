@@ -21,6 +21,7 @@ const (
 type SkelpOptions struct {
 	Download          bool
 	CheckForUpdates   bool
+	DryRun            bool
 	OutputDir         string
 	HomeDirOverride   string
 	SkelpDirOverride  string

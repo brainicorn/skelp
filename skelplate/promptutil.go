@@ -16,31 +16,31 @@ const (
 	promptAddAnother    = "Would you like to add another value for %s:"
 )
 
-func promptForVariable(tvar TemplateVariable, varname string, dval interface{}, beforePrompt func()) (interface{}, error) {
+func (sdp *SkelplateDataProvider) promptForVariable(tvar TemplateVariable, varname string, dval interface{}) (interface{}, error) {
 	var ask prompter.Prompter
 	var askAgain prompter.Prompter
 
-	prompt := prompter.Prompt{BeforePrompt: beforePrompt}
+	prompt := prompter.Prompt{BeforePrompt: sdp.beforePrompt}
 
 	defIsBool := reflect.TypeOf(dval).Kind() == reflect.Bool
 
 	switch tvar.(type) {
 	case *SimpleVar:
 		ttv := tvar.(*SimpleVar)
-		cplxVar := ComplexVar{
+		cplxVar := CustomizedVar{
 			SimpleVar: *ttv,
 		}
 		configurePrompt(&prompt, cplxVar, varname, promptEnterValue, dval)
 		ask = &prompter.KeyedInput{Prompt: prompt, IsConfirm: defIsBool}
 
-	case *ComplexVar:
-		ttv := tvar.(*ComplexVar)
+	case *CustomizedVar:
+		ttv := tvar.(*CustomizedVar)
 		configurePrompt(&prompt, *ttv, varname, promptEnterValue, dval)
 		ask = &prompter.KeyedInput{Prompt: prompt, IsConfirm: defIsBool, IsPassword: ttv.Password}
 
 	case *MultiValue:
 		ttv := tvar.(*MultiValue)
-		configurePrompt(&prompt, ttv.ComplexVar, varname, promptEnterValue, dval)
+		configurePrompt(&prompt, ttv.CustomizedVar, varname, promptEnterValue, dval)
 		ask = &prompter.KeyedInput{Prompt: prompt, IsConfirm: false}
 
 		secondQuestion := fmt.Sprintf(promptAddAnother, varname)
@@ -58,25 +58,25 @@ func promptForVariable(tvar TemplateVariable, varname string, dval interface{}, 
 
 	case *Selection:
 		ttv := tvar.(*Selection)
-		configurePrompt(&prompt, ttv.ComplexVar, varname, promptMakeSelection, dval)
-
+		configurePrompt(&prompt, ttv.CustomizedVar, varname, promptMakeSelection, dval)
+		multi := (reflect.TypeOf(dval).Kind().String() == reflect.Slice.String())
 		ask = &prompter.SelectedInput{
 			Prompt:  prompt,
-			Options: ttv.Choices,
-			IsMulti: ttv.MultipleChoice,
+			Options: stringifyChoices(ttv.Choices),
+			IsMulti: multi,
 		}
 	}
 
-	return doPrompt(ask, askAgain, beforePrompt, dval)
+	return doPrompt(ask, askAgain, sdp.beforePrompt, dval)
 }
 
-func configurePrompt(prompt *prompter.Prompt, cv ComplexVar, varname, fallbackQuestion string, defval interface{}) {
+func configurePrompt(prompt *prompter.Prompt, cv CustomizedVar, varname, fallbackQuestion string, defval interface{}) {
 	prompt.Question = formatQuestion(cv, varname, fallbackQuestion)
 	prompt.Validators = []prompter.Validator{}
 	configureDefaultAndValidators(prompt, cv, defval)
 }
 
-func formatQuestion(cv ComplexVar, varname, fallback string) string {
+func formatQuestion(cv CustomizedVar, varname, fallback string) string {
 	question := fmt.Sprintf(fallback, varname)
 
 	if !skelputil.IsBlank(cv.Prompt) {
@@ -86,7 +86,7 @@ func formatQuestion(cv ComplexVar, varname, fallback string) string {
 	return question
 }
 
-func configureDefaultAndValidators(prompt *prompter.Prompt, cv ComplexVar, defval interface{}) {
+func configureDefaultAndValidators(prompt *prompter.Prompt, cv CustomizedVar, defval interface{}) {
 	var defstring string
 
 	switch defval.(type) {
@@ -137,6 +137,23 @@ func configureDefaultAndValidators(prompt *prompter.Prompt, cv ComplexVar, defva
 	}
 
 	prompt.Default = defstring
+}
+
+func stringifyChoices(choices []interface{}) []string {
+	var choicesStringified = []string{}
+	fmt.Println(choices)
+	switch choices[0].(type) {
+	case string:
+		for _, choice := range choices {
+			choicesStringified = append(choicesStringified, choice.(string))
+		}
+	case float64:
+		for _, choice := range choices {
+			choicesStringified = append(choicesStringified, strconv.FormatFloat(choice.(float64), 'f', -1, 64))
+		}
+	}
+
+	return choicesStringified
 }
 
 func doPrompt(ask, askAgain prompter.Prompter, beforePrompt func(), defval interface{}) (interface{}, error) {

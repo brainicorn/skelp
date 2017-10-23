@@ -2,7 +2,6 @@ package skelplate
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -103,13 +102,12 @@ var tmplTests = []struct {
 							  "author": "brainicorn",
 							  "variables":[{
 								"name":"beer",
-								"default":"kolsch",
-								"mutlichoice":true,
+								"default":["kolsch"],
 								"choices":["pale","kolsch","stout"]
 								}]
 							}`,
 		[]string{" \x0e \x0e "},
-		map[string]interface{}{"beer": "pale,stout"},
+		map[string]interface{}{"beer": []interface{}{"pale", "stout"}},
 	},
 	{
 		`{
@@ -117,7 +115,6 @@ var tmplTests = []struct {
 							  "variables":[{
 								"name":"beer",
 								"default":["kolsch"],
-								"mutlichoice":true,
 								"choices":["pale","kolsch","stout"]
 								}]
 							}`,
@@ -144,12 +141,30 @@ var tmplTests = []struct {
 							  "variables":[{
 								"name":"rounds",
 								"default":[2],
-								"mutlichoice":true,
-								"choices":["1","2","5","7"]
+								"choices":[1,2,5,7]
 								}]
 							}`,
 		[]string{" \x0e \x0e "},
 		map[string]interface{}{"rounds": []interface{}{float64(1), float64(5)}},
+	},
+	{
+		`{
+							  "author": "brainicorn",
+							  "variables":[{
+								"name":"bar",
+								"variables":[{
+									"name":"barname",
+									"default":"my bar"
+									},
+									{
+									"name":"barslogan",
+									"default":"free beer tomorrow"
+									}
+									]
+								}]
+							}`,
+		[]string{"\n", "\n"},
+		map[string]interface{}{"bar": map[string]interface{}{"barname": "my bar", "barslogan": "free beer tomorrow"}},
 	},
 }
 
@@ -168,7 +183,6 @@ func TestGatherData(t *testing.T) {
 
 		var n string
 		dp.beforePrompt = func() {
-			fmt.Println("before prompt")
 			n, tt.input = tt.input[0], tt.input[1:]
 			in.Truncate(0)
 			in.Seek(0, os.SEEK_SET)

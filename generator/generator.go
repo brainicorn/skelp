@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -67,6 +68,23 @@ func (sg *SkelpGenerator) pathGeneration(rootTemplateDir string, dataProvider pr
 
 	if err == nil {
 		tmplData, err = dataProvider(absRootTemplateDir)
+	}
+
+	if err == nil {
+		if sg.skelpOptions.DryRun {
+			var jsn []byte
+			jsn, err = json.MarshalIndent(tmplData, "", "    ")
+
+			if err == nil {
+				fmt.Println("--------------")
+				fmt.Println("Data Gathered:")
+				fmt.Println("--------------")
+				fmt.Println(string(jsn))
+				fmt.Println("--------------")
+			}
+
+			return err
+		}
 	}
 
 	if err == nil {
