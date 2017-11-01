@@ -358,7 +358,7 @@ func TestLocalGenComplex(t *testing.T) {
 	opts.OutputDir = tmpDir
 
 	gen := New(opts)
-	defData := map[string]interface{}{"projectName": projectNameLocal, "packageName": packageNameLocal, "multiComplex": []map[string]interface{}{{"varone": "foo", "vartwo": "bar"}}, "database": map[string]interface{}{"db": "mongo", "namespace": "myspace", "regions": []interface{}{"east", "ap"}}}
+	defData := map[string]interface{}{"projectName": projectNameLocal, "packageName": packageNameLocal, "multiComplex": []map[string]interface{}{{"varone": "foo", "vartwo": "bar"}, {"varone": "foo2", "vartwo": "bar2"}}, "database": map[string]interface{}{"db": "mongo", "namespace": "myspace", "regions": []interface{}{"east", "ap"}}}
 	dp := skelplate.NewDataProvider(defData, skelplate.SkipMulti)
 
 	err := gen.Generate("../testdata/generator/complex", dp.DataProviderFunc)

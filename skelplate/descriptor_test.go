@@ -198,6 +198,82 @@ var tmplTests = []struct {
 		[]string{" \n", "myspace", " \x0e\x0e "},
 		map[string]interface{}{"database": map[string]interface{}{"db": "mongo", "namespace": "myspace", "regions": []interface{}{"east", "ap"}}},
 	},
+	{
+		`{
+							  "author": "brainicorn",
+							  "variables":[{
+								"name":"databases",
+								"addPrompt":"Add Another?",
+								"variables":[{
+									"name":"db",
+									"required":true,
+									"default":"mongo"
+									},
+									{
+									"name":"namespace",
+									"prompt":"Enter a namespace:",
+									"default":"",
+									"required": true
+									}
+								]
+							}]
+						}`,
+		[]string{"mongo", "myspace", "y", "cassandra", "yourspace", "n"},
+		map[string]interface{}{"databases": []map[string]interface{}{{"db": "mongo", "namespace": "myspace"}, {"db": "cassandra", "namespace": "yourspace"}}},
+	},
+	{
+		`{
+							  "author": "brainicorn",
+							  "variables":[{
+								"name":"post",
+								"required":true,
+								"default":""
+							},
+							{
+								"name":"tagcollectors",
+								"addPrompt":"Add Another?",
+								"variables":[{
+									"name":"collection",
+									"required":true,
+									"variables":[{
+										"name":"name",
+										"required":true,
+										"default":""
+									   },
+									   {
+										"name":"tags",
+										"required":true,
+										"addPrompt":"Add Another Tag?",
+										"default":[""]
+									   }]
+									},
+									{
+									"name":"author",
+									"prompt":"Enter your name:",
+									"default":"",
+									"required": true
+								}]
+							}]
+						}`,
+		[]string{"mypost", "collection1", "tag1", "y", "tag2", "n", "me", "y", "collection2", "tag3", "y", "tag4", "n", "you", "n"},
+		map[string]interface{}{
+			"post": "mypost",
+			"tagcollectors": []map[string]interface{}{
+				{"collection": map[string]interface{}{
+					"name": "collection1",
+					"tags": []interface{}{"tag1", "tag2"},
+				},
+					"author": "me",
+				},
+				{"collection": map[string]interface{}{
+					"name": "collection2",
+					"tags": []interface{}{"tag3", "tag4"},
+				},
+					"author": "you",
+				},
+			},
+		},
+	},
 }
 
 func TestGatherData(t *testing.T) {
@@ -261,7 +337,7 @@ func TestGatherData(t *testing.T) {
 		delete(valmap, "TemplateDesc")
 
 		if !reflect.DeepEqual(tt.expected, valmap) {
-			t.Errorf("template parse error:\n  expected:\n  %+v\n  actual:\n  %+v", tt.expected, valmap)
+			t.Errorf("template data error:\n  expected:\n  %+v\n  actual:\n  %+v", tt.expected, valmap)
 		}
 
 	}

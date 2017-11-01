@@ -33,7 +33,7 @@ an existing project.`,
 		PersistentPreRunE: validateRootFlags,
 	}
 
-	skelpCmd.PersistentFlags().BoolVar(&quietFlag, "quiet", false, "run in 'quiet mode'")
+	skelpCmd.PersistentFlags().BoolVarP(&quietFlag, "quiet", "q", false, "run in 'quiet mode'")
 	skelpCmd.PersistentFlags().BoolVar(&noColorFlag, "no-color", false, "turn off terminal colors")
 	skelpCmd.PersistentFlags().StringVar(&homedirFlag, "homedir", "", "path to override user's home directory where skelp stores data")
 	skelpCmd.PersistentFlags().StringVar(&skelpdirFlag, "skelpdir", "", "override name of skelp folder within the user's home directory")

@@ -1,20 +1,20 @@
-## skelp alias add
+## skelp validate
 
-Create a short alias name for a template url/path
+Validates a skelp descriptor
 
 ### Synopsis
 
 
-Create a short alias name for a template url/path
+Validates a skelp descriptor
 
 ```
-skelp alias add [alias name] [git-url|file-path] [flags]
+skelp validate [descriptor-path] [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for add
+  -h, --help   help for validate
 ```
 
 ### Options inherited from parent commands
@@ -22,10 +22,10 @@ skelp alias add [alias name] [git-url|file-path] [flags]
 ```
       --homedir string    path to override user's home directory where skelp stores data
       --no-color          turn off terminal colors
-      --quiet             run in 'quiet mode'
+  -q, --quiet             run in 'quiet mode'
       --skelpdir string   override name of skelp folder within the user's home directory
 ```
 
 ### SEE ALSO
-* [skelp alias](skelp_alias.md)	 - manage aliases for urls / filepaths
+* [skelp](skelp.md)	 - A commandline tool for generating skeleton projects
 

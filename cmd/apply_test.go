@@ -17,7 +17,7 @@ func TestApply(t *testing.T) {
 	tmpOutputDir, _ := ioutil.TempDir("", "skelp-output")
 	defer os.RemoveAll(tmpOutputDir)
 
-	code := Execute([]string{"apply", "../testdata/generator/simple", "--no-color", "--force", "--offline", "--homedir", tmpHomeDir, "-o", tmpOutputDir, "-d", "../testdata/generator/simple-data.json"}, out)
+	code := Execute([]string{"apply", "../testdata/generator/simple", "-q", "--no-color", "--force", "--offline", "--homedir", tmpHomeDir, "-o", tmpOutputDir, "-d", "../testdata/generator/simple-data.json"}, out)
 
 	if code != 0 {
 		fmt.Println(out)

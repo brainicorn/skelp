@@ -19,6 +19,10 @@
           "title": "Name is the name of the variable.",
           "description": "The name can be a golang template and can use values gathered from previous\nvariables in the variables array."
         },
+        "required": {
+          "type": "boolean",
+          "title": "Required whether or not a non-empty value is required."
+        },
         "variables": {
           "type": "array",
           "title": "TemplateVariables holds the variables that make up the fields of the object.",

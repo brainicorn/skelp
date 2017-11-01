@@ -74,7 +74,7 @@ func executeValidate(cmd *cobra.Command, args []string) error {
 	}
 
 	if err == nil {
-		fmt.Println("Descriptor OK.")
+		cmd.Println("Descriptor OK.")
 	}
 
 	return err

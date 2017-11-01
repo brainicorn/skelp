@@ -211,7 +211,9 @@ func (sdp *SkelplateDataProvider) gatherSingleVariable(v TemplateVariable, fille
 		return err
 	}
 
-	defval, err = sdp.renderDefaultValue(v, fillerData)
+	if dv, isDefaultable := v.(Defaultable); isDefaultable {
+		defval, err = sdp.renderDefaultValue(dv, fillerData)
+	}
 
 	if err != nil {
 		return err
@@ -294,7 +296,7 @@ func (sdp *SkelplateDataProvider) isVariableDisabled(v TemplateVariable, fillerD
 	return disabled, nil
 }
 
-func (sdp *SkelplateDataProvider) renderDefaultValue(v TemplateVariable, fillerData map[string]interface{}) (interface{}, error) {
+func (sdp *SkelplateDataProvider) renderDefaultValue(v Defaultable, fillerData map[string]interface{}) (interface{}, error) {
 	var err error
 	var defval interface{}
 

@@ -53,8 +53,12 @@ func (sd *SkelplateDescriptor) Variables() []TemplateVariable {
 // )
 type TemplateVariable interface {
 	Name() string
-	Default() interface{}
 	DisabledTemplate() string
+}
+
+// Defaultable is an interface for variables that have default values.
+type Defaultable interface {
+	Default() interface{}
 }
 
 // SimpleVar is an object that can express a name value pair.
@@ -100,6 +104,9 @@ func (sv *SimpleVar) DisabledTemplate() string {
 // @jsonSchema(additionalProperties=false)
 type ComplexVar struct {
 
+	// Required whether or not a non-empty value is required.
+	Required bool `json:"required,omitempty"`
+
 	// Name is the name of the variable.
 	// The name can be a golang template and can use values gathered from previous
 	// variables in the variables array.
@@ -126,10 +133,6 @@ type ComplexVar struct {
 
 func (cv *ComplexVar) Name() string {
 	return cv.Varname
-}
-
-func (cv *ComplexVar) Default() interface{} {
-	return struct{}{}
 }
 
 func (cv *ComplexVar) DisabledTemplate() string {

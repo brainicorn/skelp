@@ -25,7 +25,7 @@ skelp bashme [flags]
 ```
       --homedir string    path to override user's home directory where skelp stores data
       --no-color          turn off terminal colors
-      --quiet             run in 'quiet mode'
+  -q, --quiet             run in 'quiet mode'
       --skelpdir string   override name of skelp folder within the user's home directory
 ```
 
