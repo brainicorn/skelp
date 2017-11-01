@@ -145,12 +145,16 @@ func (i *KeyedInput) Ask() (string, error) {
 			}
 
 			if err == nil {
+				answerToShow := ans
+				if i.IsPassword {
+					answerToShow = strings.Repeat("*", len(ans))
+				}
 				i.Render(
 					KeyedInputTemplate,
 					KeyedTemplateData{
 						InputTemplateData: InputTemplateData{
 							Prompt:     i.Prompt,
-							Answer:     ans,
+							Answer:     answerToShow,
 							ShowAnswer: true,
 						},
 						BoolDefault: trueOrFalseBool(i.Default),

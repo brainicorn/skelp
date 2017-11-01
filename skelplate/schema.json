@@ -14,10 +14,6 @@
           "type": "string",
           "title": "Disabled will disable this prompt if set to true."
         },
-        "mutlival": {
-          "type": "boolean",
-          "title": "IsMultiVal designates the variable as a mutli-value prompt."
-        },
         "name": {
           "type": "string",
           "title": "Name is the name of the variable.",
@@ -138,10 +134,6 @@
           "type": "number",
           "title": "Min the minimum value (for numbers) or length (for strings)."
         },
-        "mutlival": {
-          "type": "boolean",
-          "title": "IsMultiVal designates the variable as a mutli-value prompt."
-        },
         "name": {
           "type": "string",
           "title": "Name is the name of the variable.",
@@ -162,8 +154,7 @@
       },
       "required": [
         "name",
-        "default",
-        "mutlival"
+        "default"
       ],
       "additionalProperties": false
     },

@@ -61,6 +61,7 @@ func addCommandsToRoot(cmd *cobra.Command) {
 	cmd.AddCommand(newApplyCommand())
 	cmd.AddCommand(newAliasCommand())
 	cmd.AddCommand(newBashmeCommand())
+	cmd.AddCommand(newValidateCommand())
 }
 
 // This is called by main.main(). It only needs to happen once to the rootCmd.
@@ -101,6 +102,8 @@ func getBaseOptions() generator.SkelpOptions {
 	if !skelputil.IsBlank(skelpdirFlag) {
 		opts.SkelpDirOverride = skelpdirFlag
 	}
+
+	opts.QuietMode = quietFlag
 
 	return opts
 }

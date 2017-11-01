@@ -120,10 +120,6 @@ type ComplexVar struct {
 	// @jsonSchema(required=true)
 	TemplateVariables []TemplateVariable `json:"variables"`
 
-	// IsMultiVal designates the variable as a mutli-value prompt.
-	//
-	IsMultiVal bool `json:"mutlival"`
-
 	// AddPrompt is the string to display when asking if another value should be entered.
 	AddPrompt string `json:"addPrompt,omitempty"`
 }
@@ -184,11 +180,6 @@ type Selection struct {
 // @jsonSchema(additionalProperties=false)
 type MultiValue struct {
 	CustomizedVar
-
-	// IsMultiVal designates the variable as a mutli-value prompt.
-	//
-	// @jsonSchema(required=true)
-	IsMultiVal bool `json:"mutlival"`
 
 	// AddPrompt is the string to display when asking if another value should be entered.
 	AddPrompt string `json:"addPrompt,omitempty"`
@@ -294,8 +285,6 @@ func (cv *ComplexVar) UnmarshalJSON(data []byte) error {
 				cv.Varname = v.(string)
 			case "disabled":
 				cv.Disabled = v.(string)
-			case "mutlival":
-				cv.IsMultiVal = v.(bool)
 			case "addPrompt":
 				cv.AddPrompt = v.(string)
 			case "variables":
@@ -375,7 +364,7 @@ func typeOfVar(varmap map[string]interface{}) string {
 		return typeComplex
 	}
 
-	if _, ok := varmap["mutlival"]; ok {
+	if _, ok := varmap["addPrompt"]; ok {
 		return typeMultiVal
 	}
 

@@ -77,7 +77,7 @@ var tmplErrTests = []struct {
 func TestTemplateParseErrors(t *testing.T) {
 
 	for _, tt := range tmplErrTests {
-		dp := NewDataProvider(tt.prefill)
+		dp := NewDataProvider(tt.prefill, 0)
 
 		var descriptor SkelplateDescriptor
 		err := json.Unmarshal([]byte(tt.tmpl), &descriptor)
@@ -133,7 +133,7 @@ func TestGatherDataInterrupt(t *testing.T) {
 				  "variables":[{"name":"beer", "default":"ipa"}]
 				}`
 
-	dp := NewDataProvider(nil)
+	dp := NewDataProvider(nil, 0)
 
 	user := newFakeInterruptingUser([]string{string(terminal.KeyInterrupt)})
 	defer user.done()

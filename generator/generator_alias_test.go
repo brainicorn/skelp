@@ -31,7 +31,7 @@ func TestUnknownAlias(t *testing.T) {
 	opts.OutputDir = "/tmp"
 
 	defData := map[string]interface{}{"projectName": aliasprojectName, "packageName": aliaspackageName}
-	dp := skelplate.NewDataProvider(defData)
+	dp := skelplate.NewDataProvider(defData, 0)
 
 	gen := New(opts)
 
@@ -112,7 +112,7 @@ func TestAliasGenSimple(t *testing.T) {
 
 	gen := New(opts)
 	defData := map[string]interface{}{"projectName": aliasprojectName, "packageName": aliaspackageName}
-	dp := skelplate.NewDataProvider(defData)
+	dp := skelplate.NewDataProvider(defData, 0)
 
 	err := gen.AddAlias("knownalias", "../testdata/generator/simple")
 

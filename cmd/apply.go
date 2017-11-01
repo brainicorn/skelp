@@ -93,7 +93,13 @@ func executeApply(cmd *cobra.Command, args []string) error {
 
 	if err == nil {
 		gen := generator.New(opts)
-		dp := skelplate.NewDataProvider(defData)
+
+		var flags skelplate.Flag = 0
+		if opts.QuietMode {
+			flags = skelplate.UseDefaults | skelplate.SkipMulti
+		}
+
+		dp := skelplate.NewDataProvider(defData, flags)
 		err = gen.Generate(args[0], dp.DataProviderFunc)
 	}
 

@@ -83,10 +83,11 @@ func (we *WalkingExecutor) processFileTemplate(outputDir, relTarget, templatePat
 		return nil
 	}
 
-	fileTemplate, err = template.ParseFiles(templatePath)
+	tname := filepath.Base(templatePath)
+	fileTemplate, err = template.New(tname).Option(we.tOptions...).Funcs(we.funcMap).ParseFiles(templatePath)
 
 	if err == nil {
-		fileTemplate.Option(we.tOptions...).Funcs(we.funcMap)
+		//fileTemplate.Option(we.tOptions...).Funcs(we.funcMap)
 		destFile, err = os.Create(absTarget)
 	}
 

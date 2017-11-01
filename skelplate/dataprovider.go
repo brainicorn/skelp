@@ -17,23 +17,33 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
+type Flag byte
+
+const (
+	UseDefaults Flag = 1 << iota
+	SkipMulti
+)
+
 const (
 	skelpFilename        = "skelp.json"
 	ErrSkelpFileNotFound = "skelp.json not found: %s"
+	indexSeparator       = ";"
 )
 
 type SkelplateDataProvider struct {
 	data         map[string]interface{}
 	funcMap      map[string]interface{}
+	flags        Flag
 	tOptions     []string
 	beforePrompt func()
 }
 
-func NewDataProvider(data map[string]interface{}) *SkelplateDataProvider {
+func NewDataProvider(data map[string]interface{}, opts Flag) *SkelplateDataProvider {
 	return &SkelplateDataProvider{
 		data:     data,
 		funcMap:  skelputil.FunctionMap(),
 		tOptions: skelputil.TemplateOptions(),
+		flags:    opts,
 	}
 }
 
@@ -95,69 +105,93 @@ func (sdp *SkelplateDataProvider) gatherData(descriptor SkelplateDescriptor) (ma
 
 func (sdp *SkelplateDataProvider) gatherVariableData(variables []TemplateVariable, fillerData map[string]interface{}, parents []string) error {
 	var err error
+	curParents := parents
 	for _, v := range variables {
 		if err == nil {
+
 			if cv, isCV := v.(*ComplexVar); isCV {
 				disabled := false
 				disabled, err = sdp.isVariableDisabled(v, fillerData)
 
-				if err != nil || disabled {
-					return err
-				}
+				if err == nil {
 
-				var askAgain prompter.Prompter
-				var answer interface{}
-				varname := v.Name()
-				parents = append(parents, varname)
+					if disabled {
+						continue
+					}
 
-				if cv.IsMultiVal {
-					secondQuestion := fmt.Sprintf(promptAddAnother, varname)
+					var askAgain prompter.Prompter
+					var answer interface{}
+					varname := v.Name()
+					curParents = append(curParents, varname)
+
 					if !skelputil.IsBlank(cv.AddPrompt) {
-						secondQuestion = cv.AddPrompt
-					}
+						secondQuestion := cv.AddPrompt
 
-					askAgain = &prompter.KeyedInput{
-						Prompt: prompter.Prompt{
-							Question: secondQuestion,
-							Default:  "y",
-						},
-						IsConfirm: true,
-					}
-				}
-
-				if askAgain != nil {
-					objects := make([]map[string]interface{}, 0)
-					again := true
-
-					for again {
-						cvData := make(map[string]interface{})
-						err = sdp.gatherVariableData(cv.Variables(), cvData, parents)
-						if err == nil {
-
-							objects = append(objects, cvData)
-
-							if sdp.beforePrompt != nil {
-								sdp.beforePrompt()
-							}
+						askAgain = &prompter.KeyedInput{
+							Prompt: prompter.Prompt{
+								Question: secondQuestion,
+								Default:  "y",
+							},
+							IsConfirm: true,
 						}
 
-						again, _ = prompter.AsBool(askAgain.Ask())
+						objects := make([]map[string]interface{}, 0)
+						again := true
+
+						// the resulting data as well as the provided data is an array of maps.
+						// we need to make sure we keep track of the array index when prepopulating data
+						curIndex := 0
+						curParents[len(curParents)-1] = curParents[len(curParents)-1] + indexSeparator + strconv.Itoa(curIndex)
+
+						// we also need to ensure we loop at least as many times as we have provided data
+						objPath := strings.Join(curParents, ".")
+						minIndex := 0
+						if providedObjArray, gotDataObjs := getDotKeyFromMap(objPath, sdp.data); gotDataObjs {
+							minIndex = len(providedObjArray.([]map[string]interface{})) - 1
+						}
+
+						for again {
+							cvData := make(map[string]interface{})
+							err = sdp.gatherVariableData(cv.Variables(), cvData, curParents)
+
+							again = (err == nil)
+							if err == nil {
+
+								objects = append(objects, cvData)
+
+								if curIndex < minIndex {
+									again = true
+								} else if sdp.flags&SkipMulti != 0 {
+									again = false
+								} else {
+									if sdp.beforePrompt != nil {
+										sdp.beforePrompt()
+									}
+									again, _ = prompter.AsBool(askAgain.Ask())
+								}
+								curIndex++
+								curParents[len(curParents)-1] = varname + indexSeparator + strconv.Itoa(curIndex)
+							}
+
+						}
+
+						answer = objects
+					} else {
+						cvData := make(map[string]interface{})
+						err = sdp.gatherVariableData(cv.Variables(), cvData, curParents)
+
+						answer = cvData
 					}
 
-					answer = objects
-				} else {
-					cvData := make(map[string]interface{})
-					err = sdp.gatherVariableData(cv.Variables(), cvData, parents)
-
-					answer = cvData
-				}
-
-				if err == nil {
-					fillerData[varname] = answer
+					if err == nil {
+						fillerData[varname] = answer
+					}
+					curParents = []string{}
 				}
 			} else {
-				err = sdp.gatherSingleVariable(v, fillerData, parents)
+				err = sdp.gatherSingleVariable(v, fillerData, curParents)
 			}
+
 		}
 	}
 
@@ -167,9 +201,10 @@ func (sdp *SkelplateDataProvider) gatherVariableData(variables []TemplateVariabl
 func (sdp *SkelplateDataProvider) gatherSingleVariable(v TemplateVariable, fillerData map[string]interface{}, parents []string) error {
 	var err error
 	var dataval interface{}
-	var gotdata bool
 	var defval interface{}
 	var disabled bool
+	prefilled := false
+
 	disabled, err = sdp.isVariableDisabled(v, fillerData)
 
 	if err != nil || disabled {
@@ -190,27 +225,14 @@ func (sdp *SkelplateDataProvider) gatherSingleVariable(v TemplateVariable, fille
 
 	varname := v.Name()
 
-	varpath := strings.Join(append(parents, varname), ".")
+	prefilled, err = sdp.prefillDataVar(varname, defval, fillerData, parents)
 
-	// todo write a helper to get/set from nested maps using dot notation
-	if dataval, gotdata = getDotKeyFromMap(varpath, sdp.data); gotdata {
-		fillerVal := dataval
-		typeOfDefval := reflect.TypeOf(defval)
-		typeOfDataval := reflect.TypeOf(dataval)
-		if typeOfDefval.Kind() == typeOfDataval.Kind() {
-			if typeOfDataval.Kind() == reflect.String {
-				fillerVal, err = sdp.runStringTemplate(dataval.(string), fillerData)
+	if err != nil {
+		return err
+	}
 
-				if err != nil {
-					return fmt.Errorf("unable to parse data template: %s - %s", dataval, err)
-				}
-			}
-
-			fillerData[varname] = fillerVal
-			return nil
-		} else {
-			return fmt.Errorf("invalid type for provided data entry '%s': want (%s) have (%s)", varname, typeOfDataval.Kind(), typeOfDefval.Kind())
-		}
+	if prefilled {
+		return nil
 	}
 
 	dataval, err = sdp.promptForVariable(v, varname, defval)
@@ -221,6 +243,36 @@ func (sdp *SkelplateDataProvider) gatherSingleVariable(v TemplateVariable, fille
 
 	fillerData[varname] = dataval
 	return err
+}
+
+func (sdp *SkelplateDataProvider) prefillDataVar(varname string, defval interface{}, fillerData map[string]interface{}, parents []string) (bool, error) {
+	var dataval interface{}
+	var gotdata bool
+	var err error
+	varpath := strings.Join(append(parents, varname), ".")
+
+	if dataval, gotdata = getDotKeyFromMap(varpath, sdp.data); gotdata {
+		fillerVal := dataval
+
+		typeOfDefval := reflect.TypeOf(defval)
+		typeOfDataval := reflect.TypeOf(dataval)
+		if typeOfDefval.Kind() == typeOfDataval.Kind() {
+			if typeOfDataval.Kind() == reflect.String {
+				fillerVal, err = sdp.runStringTemplate(dataval.(string), fillerData)
+
+				if err != nil {
+					return false, fmt.Errorf("unable to parse data template: %s - %s", dataval, err)
+				}
+			}
+
+			fillerData[varname] = fillerVal
+			return true, nil
+		} else {
+			return false, fmt.Errorf("invalid type for provided data entry '%s': want (%s) have (%s)", varname, typeOfDataval.Kind(), typeOfDefval.Kind())
+		}
+	}
+
+	return false, nil
 }
 
 func (sdp *SkelplateDataProvider) isVariableDisabled(v TemplateVariable, fillerData map[string]interface{}) (bool, error) {
@@ -334,16 +386,19 @@ func isStringSlice(valOf reflect.Value) bool {
 }
 
 func getDotKeyFromMap(key string, data map[string]interface{}) (interface{}, bool) {
-	parts := strings.Split(key, ".")
+	pathParts := strings.Split(key, ".")
 	parent := data
-	for i, k := range parts {
-		if val, ok := parent[k]; ok {
-			if i == len(parts)-1 {
+	for i, k := range pathParts {
+		key, aryIndex := getKeyAndIndex(k)
+		if val, ok := parent[key]; ok {
+			if i == len(pathParts)-1 {
 				return val, true
 			}
 
 			if mapval, ismap := val.(map[string]interface{}); ismap {
 				parent = mapval
+			} else if arymapval, isarymap := val.([]map[string]interface{}); isarymap && aryIndex > -1 {
+				parent = arymapval[aryIndex]
 			} else {
 				break
 			}
@@ -351,4 +406,15 @@ func getDotKeyFromMap(key string, data map[string]interface{}) (interface{}, boo
 	}
 
 	return nil, false
+}
+
+func getKeyAndIndex(varname string) (string, int) {
+	keyParts := strings.Split(varname, indexSeparator)
+
+	if len(keyParts) == 2 {
+		if i, err := strconv.Atoi(keyParts[1]); err == nil {
+			return keyParts[0], i
+		}
+	}
+	return varname, -1
 }

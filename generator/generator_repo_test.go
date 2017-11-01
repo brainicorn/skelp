@@ -53,7 +53,7 @@ func TestRepoGenSimple(t *testing.T) {
 	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectNameRepo, "packageName": packageNameRepo}
-	dp := skelplate.NewDataProvider(defData)
+	dp := skelplate.NewDataProvider(defData, 0)
 
 	err := gen.Generate("https://github.com/brainicorn/skelp-test-template.git", dp.DataProviderFunc)
 
@@ -113,7 +113,7 @@ func TestRepoGenCWD(t *testing.T) {
 	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectNameRepo, "packageName": packageNameRepo}
-	dp := skelplate.NewDataProvider(defData)
+	dp := skelplate.NewDataProvider(defData, 0)
 
 	err := gen.Generate("https://github.com/brainicorn/skelp-test-template", dp.DataProviderFunc)
 
@@ -164,7 +164,7 @@ func TestRepoNotFound(t *testing.T) {
 	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectNameRepo, "packageName": packageNameRepo}
-	dp := skelplate.NewDataProvider(defData)
+	dp := skelplate.NewDataProvider(defData, 0)
 
 	err := gen.Generate("git@github.com:brainicorn/does-not-exist", dp.DataProviderFunc)
 
@@ -180,7 +180,7 @@ func TestRepoTemplatesFolderNotFound(t *testing.T) {
 	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectNameRepo, "packageName": packageNameRepo}
-	dp := skelplate.NewDataProvider(defData)
+	dp := skelplate.NewDataProvider(defData, 0)
 
 	err := gen.Generate("../testdata/generator/notmplfolder", dp.DataProviderFunc)
 
@@ -196,7 +196,7 @@ func TestRepoGenBadTmpl(t *testing.T) {
 	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectNameRepo, "packageName": packageNameRepo}
-	dp := skelplate.NewDataProvider(defData)
+	dp := skelplate.NewDataProvider(defData, 0)
 
 	err := gen.Generate("../testdata/generator/badtmpl", dp.DataProviderFunc)
 
@@ -212,7 +212,7 @@ func TestRepoMissingDescriptor(t *testing.T) {
 	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectNameRepo, "packageName": packageNameRepo}
-	dp := skelplate.NewDataProvider(defData)
+	dp := skelplate.NewDataProvider(defData, 0)
 
 	err := gen.Generate("../testdata/generator/nodescriptor", dp.DataProviderFunc)
 
@@ -230,7 +230,7 @@ func TestRepoNoOverwrite(t *testing.T) {
 	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectNameRepo, "packageName": packageNameRepo}
-	dp := skelplate.NewDataProvider(defData)
+	dp := skelplate.NewDataProvider(defData, 0)
 
 	err := gen.Generate("https://github.com/brainicorn/skelp-test-template", dp.DataProviderFunc)
 
@@ -252,7 +252,7 @@ func TestRepoNoOverwrite(t *testing.T) {
 
 	// run again with different data
 	newData := map[string]interface{}{"projectName": newProjectNameRepo, "packageName": packageNameRepo}
-	newDP := skelplate.NewDataProvider(newData)
+	newDP := skelplate.NewDataProvider(newData, 0)
 
 	err = gen.Generate("https://github.com/brainicorn/skelp-test-template", newDP.DataProviderFunc)
 
@@ -280,7 +280,7 @@ func TestRepoOverwrite(t *testing.T) {
 	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectNameRepo, "packageName": packageNameRepo}
-	dp := skelplate.NewDataProvider(defData)
+	dp := skelplate.NewDataProvider(defData, 0)
 
 	err := gen.Generate("https://github.com/brainicorn/skelp-test-template", dp.DataProviderFunc)
 
@@ -302,7 +302,7 @@ func TestRepoOverwrite(t *testing.T) {
 
 	// run again with different data
 	newData := map[string]interface{}{"projectName": newProjectNameRepo, "packageName": packageNameRepo}
-	newDP := skelplate.NewDataProvider(newData)
+	newDP := skelplate.NewDataProvider(newData, 0)
 
 	opts.OverwriteProvider = func(rootDir, relFile string) bool { return true }
 	gen.skelpOptions = opts
@@ -331,7 +331,7 @@ func TestRepoNoDownloadNoCache(t *testing.T) {
 	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectNameRepo, "packageName": packageNameRepo}
-	dp := skelplate.NewDataProvider(defData)
+	dp := skelplate.NewDataProvider(defData, 0)
 
 	err := gen.Generate("https://github.com/brainicorn/skelp-test-template", dp.DataProviderFunc)
 
@@ -348,7 +348,7 @@ func TestRepoNoDownload(t *testing.T) {
 	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectNameRepo, "packageName": packageNameRepo}
-	dp := skelplate.NewDataProvider(defData)
+	dp := skelplate.NewDataProvider(defData, 0)
 
 	err := gen.Generate("https://github.com/brainicorn/skelp-test-template", dp.DataProviderFunc)
 
@@ -377,7 +377,7 @@ func TestReoSkelpDirOverride(t *testing.T) {
 	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectNameRepo, "packageName": packageNameRepo}
-	dp := skelplate.NewDataProvider(defData)
+	dp := skelplate.NewDataProvider(defData, 0)
 
 	err := gen.Generate("https://github.com/brainicorn/skelp-test-template", dp.DataProviderFunc)
 

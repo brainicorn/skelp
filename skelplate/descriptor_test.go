@@ -1,7 +1,9 @@
 package skelplate
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -9,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/AlecAivazis/survey/core"
+	"github.com/xeipuuv/gojsonschema"
 )
 
 var tmplTests = []struct {
@@ -123,15 +126,14 @@ var tmplTests = []struct {
 	},
 	{
 		`{
-							  "author": "brainicorn",
-							  "variables":[{
-							    "name":"beer",
-								"required":true,
-								"default":["kolsch"],
-								"mutlival":true,
-								"addprompt":"add another?"
-								}]
-							}`,
+								  "author": "brainicorn",
+								  "variables":[{
+								    "name":"beer",
+									"required":true,
+									"default":["kolsch"],
+									"addPrompt":"add another?"
+									}]
+								}`,
 		[]string{"ale", "y", "lager", "n"},
 		map[string]interface{}{"beer": []interface{}{"ale", "lager"}},
 	},
@@ -166,6 +168,36 @@ var tmplTests = []struct {
 		[]string{"\n", "\n"},
 		map[string]interface{}{"bar": map[string]interface{}{"barname": "my bar", "barslogan": "free beer tomorrow"}},
 	},
+	{
+		`{
+							  "author": "brainicorn",
+							  "variables":[{
+								"name":"database",
+								"variables":[{
+									"name":"db",
+									"required":true,
+									"default":"mongo",
+									"choices":["mongo","cassandra","dynamo"]
+									},
+									{
+									"name":"namespace",
+									"prompt":"Enter a namespace:",
+									"default":"",
+									"required": true
+									},
+									{
+									"name":"regions",
+									"prompt":"Choose your regions:",
+									"required": true,
+									"default":[""],
+									"choices":["east","west","ap"]
+									}
+								]
+							}]
+						}`,
+		[]string{" \n", "myspace", " \x0e\x0e "},
+		map[string]interface{}{"database": map[string]interface{}{"db": "mongo", "namespace": "myspace", "regions": []interface{}{"east", "ap"}}},
+	},
 }
 
 func TestGatherData(t *testing.T) {
@@ -177,7 +209,7 @@ func TestGatherData(t *testing.T) {
 	os.Stdin = in
 
 	var valmap map[string]interface{}
-	dp := NewDataProvider(nil)
+	dp := NewDataProvider(nil, 0)
 
 	for _, tt := range tmplTests {
 
@@ -191,6 +223,24 @@ func TestGatherData(t *testing.T) {
 		}
 
 		var descriptor SkelplateDescriptor
+
+		// validate our input
+		schemaLoader := gojsonschema.NewStringLoader(GithubComBrainicornSkelpSkelplateSkelplateDescriptor)
+		docLoader := gojsonschema.NewBytesLoader([]byte(tt.tmpl))
+
+		schemaValidationResult, verr := gojsonschema.Validate(schemaLoader, docLoader)
+
+		if verr == nil && len(schemaValidationResult.Errors()) > 0 {
+			var errBuf bytes.Buffer
+			errBuf.WriteString("Error validating skelp descriptor:\n")
+			for _, re := range schemaValidationResult.Errors() {
+				errBuf.WriteString(fmt.Sprintf("  - %s\n", re))
+			}
+
+			t.Error(errBuf.String())
+		}
+
+		// input is valid
 		err := json.Unmarshal([]byte(tt.tmpl), &descriptor)
 
 		if err != nil {

@@ -22,6 +22,7 @@ type SkelpOptions struct {
 	Download          bool
 	CheckForUpdates   bool
 	DryRun            bool
+	QuietMode         bool
 	OutputDir         string
 	HomeDirOverride   string
 	SkelpDirOverride  string

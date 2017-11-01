@@ -16,12 +16,53 @@
       "min":3
     },
 	{
-      "name": "disabledVar",
-      "default": "",
-      "prompt":"This shouldn't prompt",
-      "required":true,
-      "min":3,
-	  "disabled": "true"
-    }
+		"name":"disabledComplex",
+		"disabled":"true",
+		"addPrompt":"Add another?",
+		"variables":[{
+					"name":"db2",
+					"required":true,
+					"default":"mongo",
+					"choices":["mongo","cassandra","dynamo"]
+					}
+				]
+	},
+	{
+		"name":"multiComplex",
+		"addPrompt":"Add another?",
+		"variables":[{
+					"name":"varone",
+					"default":"foo"
+					},
+					{
+					"name":"vartwo",
+					"default":"bar"
+					}
+				]
+	},
+	{
+		"name":"database",
+		"variables":[{
+					"name":"db",
+					"required":true,
+					"default":"mongo",
+					"choices":["mongo","cassandra","dynamo"]
+					},
+					{
+					"name":"namespace",
+					"prompt":"Enter a namespace:",
+					"default":"",
+					"required": true
+					},
+					{
+					"name":"regions",
+					"prompt":"Choose your regions:",
+					"required": true,
+					"default":[""],
+					"choices":["east","west","ap"]
+					}
+				]
+	}
+
   ]
 }

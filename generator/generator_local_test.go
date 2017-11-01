@@ -22,10 +22,16 @@ var (
 	newProjectNameLocal = "newlocalgen"
 	packageNameLocal    = "localpack"
 
-	readmeExpectedLocal    = "## " + projectNameLocal + " by brainicorn"
-	newReadmeExpectedLocal = "## " + newProjectNameLocal + " by brainicorn"
-	projectExpectedLocal   = projectNameLocal + " contains package " + packageNameLocal
-	packageExpectedLocal   = "package " + packageNameLocal
+	readmeExpectedLocal        = "## " + projectNameLocal + " by brainicorn"
+	newReadmeExpectedLocal     = "## " + newProjectNameLocal + " by brainicorn"
+	readmeComplexExpectedLocal = `## %s by brainicorn
+This project uses the following database:
+
+mongo namespace: myspace in regions: east,ap
+`
+
+	projectExpectedLocal = projectNameLocal + " contains package " + packageNameLocal
+	packageExpectedLocal = "package " + packageNameLocal
 )
 
 func TestLocalGenSimple(t *testing.T) {
@@ -39,7 +45,7 @@ func TestLocalGenSimple(t *testing.T) {
 	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectNameLocal, "packageName": packageNameLocal}
-	dp := skelplate.NewDataProvider(defData)
+	dp := skelplate.NewDataProvider(defData, 0)
 
 	err := gen.Generate("../testdata/generator/simple", dp.DataProviderFunc)
 
@@ -96,7 +102,7 @@ func TestLocalGenCWD(t *testing.T) {
 	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectNameLocal, "packageName": packageNameLocal}
-	dp := skelplate.NewDataProvider(defData)
+	dp := skelplate.NewDataProvider(defData, 0)
 
 	err := gen.Generate(absTemplateDir, dp.DataProviderFunc)
 
@@ -150,7 +156,7 @@ func TestLocalBlankTemplateID(t *testing.T) {
 	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectNameLocal, "packageName": packageNameLocal}
-	dp := skelplate.NewDataProvider(defData)
+	dp := skelplate.NewDataProvider(defData, 0)
 
 	err := gen.Generate("", dp.DataProviderFunc)
 
@@ -169,7 +175,7 @@ func TestLocalTemplateRootNotFound(t *testing.T) {
 	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectNameLocal, "packageName": packageNameLocal}
-	dp := skelplate.NewDataProvider(defData)
+	dp := skelplate.NewDataProvider(defData, 0)
 
 	err := gen.Generate("/does/not/exist", dp.DataProviderFunc)
 
@@ -189,7 +195,7 @@ func TestLocalTemplatesFolderNotFound(t *testing.T) {
 	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectNameLocal, "packageName": packageNameLocal}
-	dp := skelplate.NewDataProvider(defData)
+	dp := skelplate.NewDataProvider(defData, 0)
 
 	err := gen.Generate("../testdata/generator/notmplfolder", dp.DataProviderFunc)
 
@@ -209,7 +215,7 @@ func TestLocalGenBadTmpl(t *testing.T) {
 	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectNameLocal, "packageName": packageNameLocal}
-	dp := skelplate.NewDataProvider(defData)
+	dp := skelplate.NewDataProvider(defData, 0)
 
 	err := gen.Generate("../testdata/generator/badtmpl", dp.DataProviderFunc)
 
@@ -229,7 +235,7 @@ func TestLocalMissingDescriptor(t *testing.T) {
 	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectNameLocal, "packageName": packageNameLocal}
-	dp := skelplate.NewDataProvider(defData)
+	dp := skelplate.NewDataProvider(defData, 0)
 
 	err := gen.Generate("../testdata/generator/nodescriptor", dp.DataProviderFunc)
 
@@ -249,7 +255,7 @@ func TestNoOverwrite(t *testing.T) {
 	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectNameLocal, "packageName": packageNameLocal}
-	dp := skelplate.NewDataProvider(defData)
+	dp := skelplate.NewDataProvider(defData, 0)
 
 	err := gen.Generate("../testdata/generator/simple", dp.DataProviderFunc)
 
@@ -271,7 +277,7 @@ func TestNoOverwrite(t *testing.T) {
 
 	// run again with different data
 	newData := map[string]interface{}{"projectName": newProjectNameLocal, "packageName": packageNameLocal}
-	newDP := skelplate.NewDataProvider(newData)
+	newDP := skelplate.NewDataProvider(newData, 0)
 
 	err = gen.Generate("../testdata/generator/simple", newDP.DataProviderFunc)
 
@@ -300,7 +306,7 @@ func TestOverwrite(t *testing.T) {
 	gen := New(opts)
 
 	defData := map[string]interface{}{"projectName": projectNameLocal, "packageName": packageNameLocal}
-	dp := skelplate.NewDataProvider(defData)
+	dp := skelplate.NewDataProvider(defData, 0)
 
 	err := gen.Generate("../testdata/generator/simple", dp.DataProviderFunc)
 
@@ -322,7 +328,7 @@ func TestOverwrite(t *testing.T) {
 
 	// run again with different data
 	newData := map[string]interface{}{"projectName": newProjectNameLocal, "packageName": packageNameLocal}
-	newDP := skelplate.NewDataProvider(newData)
+	newDP := skelplate.NewDataProvider(newData, 0)
 
 	opts.OverwriteProvider = provider.AlwaysOverwriteProvider
 	gen.skelpOptions = opts
@@ -341,4 +347,59 @@ func TestOverwrite(t *testing.T) {
 	if string(newReadme) != newReadmeExpectedLocal {
 		t.Errorf("contents don't match, have (%s), want (%s)", string(newReadme), newReadmeExpectedLocal)
 	}
+}
+
+func TestLocalGenComplex(t *testing.T) {
+
+	tmpDir, _ := ioutil.TempDir("", "skelp-localcomplex-test")
+	defer os.RemoveAll(tmpDir)
+
+	opts := DefaultOptions()
+	opts.OutputDir = tmpDir
+
+	gen := New(opts)
+	defData := map[string]interface{}{"projectName": projectNameLocal, "packageName": packageNameLocal, "multiComplex": []map[string]interface{}{{"varone": "foo", "vartwo": "bar"}}, "database": map[string]interface{}{"db": "mongo", "namespace": "myspace", "regions": []interface{}{"east", "ap"}}}
+	dp := skelplate.NewDataProvider(defData, skelplate.SkipMulti)
+
+	err := gen.Generate("../testdata/generator/complex", dp.DataProviderFunc)
+
+	if err != nil {
+		t.Errorf("generation error: %s", err)
+	}
+
+	readmePath := filepath.Join(tmpDir, readmeFmtLocal)
+	projectPath := filepath.Join(tmpDir, fmt.Sprintf(projectFmtLocal, projectNameLocal))
+	packagePath := filepath.Join(tmpDir, fmt.Sprintf(packageFmtLocal, packageNameLocal, packageNameLocal))
+
+	readme, err := ioutil.ReadFile(readmePath)
+
+	if err != nil {
+		t.Errorf("can't open out file (%s): %s", readmePath, err)
+	}
+
+	prjfile, err := ioutil.ReadFile(projectPath)
+
+	if err != nil {
+		t.Errorf("can't open out file (%s): %s", projectPath, err)
+	}
+
+	pkgfile, err := ioutil.ReadFile(packagePath)
+
+	if err != nil {
+		t.Errorf("can't open out file (%s): %s", packagePath, err)
+	}
+
+	expected := fmt.Sprintf(readmeComplexExpectedLocal, projectNameLocal)
+	if string(readme) != expected {
+		t.Errorf("contents don't match, have (%s), want (%s)", string(readme), expected)
+	}
+
+	if string(prjfile) != projectExpectedLocal {
+		t.Errorf("contents don't match, have (%s), want (%s)", string(prjfile), projectExpectedLocal)
+	}
+
+	if string(pkgfile) != packageExpectedLocal {
+		t.Errorf("contents don't match, have (%s), want (%s)", string(pkgfile), packageExpectedLocal)
+	}
+
 }
