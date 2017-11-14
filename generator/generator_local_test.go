@@ -14,9 +14,12 @@ import (
 )
 
 var (
-	readmeFmtLocal  = "README.md"
-	projectFmtLocal = "%s.md"
-	packageFmtLocal = "%s/%s.go"
+	readmeFmtLocal   = "README.md"
+	projectFmtLocal  = "%s.md"
+	packageFmtLocal  = "%s/%s.go"
+	preInputFmtLocal = "preinput.txt"
+	preGenFmtLocal   = "pregen.txt"
+	postGenFmtLocal  = "postgen.txt"
 
 	projectNameLocal    = "localgen"
 	newProjectNameLocal = "newlocalgen"
@@ -32,6 +35,10 @@ mongo namespace: myspace in regions: east,ap
 
 	projectExpectedLocal = projectNameLocal + " contains package " + packageNameLocal
 	packageExpectedLocal = "package " + packageNameLocal
+
+	preinputExpectedLocal = "Greetings yo yo yo"
+	pregenExpectedLocal   = "Greetings preBob"
+	postgenExpectedLocal  = "Greetings postBob"
 )
 
 func TestLocalGenSimple(t *testing.T) {
@@ -400,6 +407,120 @@ func TestLocalGenComplex(t *testing.T) {
 
 	if string(pkgfile) != packageExpectedLocal {
 		t.Errorf("contents don't match, have (%s), want (%s)", string(pkgfile), packageExpectedLocal)
+	}
+
+}
+
+func TestLocalHooks(t *testing.T) {
+	tmpDir, _ := ioutil.TempDir("", "skelp-localgen-test")
+	defer os.RemoveAll(tmpDir)
+
+	opts := DefaultOptions()
+	opts.OutputDir = tmpDir
+
+	gen := New(opts)
+
+	defData := map[string]interface{}{"preGreeting": "preBob", "postGreeting": "postBob"}
+	dp := skelplate.NewDataProvider(defData, 0)
+
+	err := gen.GenerateWithHooks("../testdata/generator/simplehooks", dp.DataProviderFunc, dp.HookProviderFunc)
+
+	if err != nil {
+		t.Errorf("generation error: %s", err)
+	}
+
+	preinputPath := filepath.Join(tmpDir, preInputFmtLocal)
+	pregenPath := filepath.Join(tmpDir, preGenFmtLocal)
+	postgenPath := filepath.Join(tmpDir, postGenFmtLocal)
+
+	preinput, err := ioutil.ReadFile(preinputPath)
+
+	if err != nil {
+		t.Errorf("can't open out file (%s): %s", preinputPath, err)
+	}
+
+	pregen, err := ioutil.ReadFile(pregenPath)
+
+	if err != nil {
+		t.Errorf("can't open out file (%s): %s", pregenPath, err)
+	}
+
+	postgen, err := ioutil.ReadFile(postgenPath)
+
+	if err != nil {
+		t.Errorf("can't open out file (%s): %s", postgenPath, err)
+	}
+
+	if strings.TrimSpace(string(preinput)) != preinputExpectedLocal {
+		t.Errorf("contents don't match, have (%s), want (%s)", string(preinput), preinputExpectedLocal)
+	}
+
+	if strings.TrimSpace(string(pregen)) != pregenExpectedLocal {
+		t.Errorf("contents don't match, have (%s), want (%s)", string(pregen), pregenExpectedLocal)
+	}
+
+	if strings.TrimSpace(string(postgen)) != postgenExpectedLocal {
+		t.Errorf("contents don't match, have (%s), want (%s)", string(postgen), postgenExpectedLocal)
+	}
+
+}
+
+func TestPreInHookErr(t *testing.T) {
+	tmpDir, _ := ioutil.TempDir("", "skelp-localgen-test")
+	defer os.RemoveAll(tmpDir)
+
+	opts := DefaultOptions()
+	opts.OutputDir = tmpDir
+
+	gen := New(opts)
+
+	defData := map[string]interface{}{"preGreeting": "preBob", "postGreeting": "postBob"}
+	dp := skelplate.NewDataProvider(defData, 0)
+
+	err := gen.GenerateWithHooks("../testdata/generator/preinhookserr", dp.DataProviderFunc, dp.HookProviderFunc)
+
+	if err == nil || !strings.HasPrefix(err.Error(), "error executing preInput hook") {
+		t.Errorf("wrong error: have (%s), want (%s)", err, "error executing preInput hook")
+	}
+
+}
+
+func TestPreGenHookErr(t *testing.T) {
+	tmpDir, _ := ioutil.TempDir("", "skelp-localgen-test")
+	defer os.RemoveAll(tmpDir)
+
+	opts := DefaultOptions()
+	opts.OutputDir = tmpDir
+
+	gen := New(opts)
+
+	defData := map[string]interface{}{"preGreeting": "preBob", "postGreeting": "postBob"}
+	dp := skelplate.NewDataProvider(defData, 0)
+
+	err := gen.GenerateWithHooks("../testdata/generator/pregenhookserr", dp.DataProviderFunc, dp.HookProviderFunc)
+
+	if err == nil || !strings.HasPrefix(err.Error(), "error executing preGen hook") {
+		t.Errorf("wrong error: have (%s), want (%s)", err, "error executing preGen hook")
+	}
+
+}
+
+func TestPostGenHookErr(t *testing.T) {
+	tmpDir, _ := ioutil.TempDir("", "skelp-localgen-test")
+	defer os.RemoveAll(tmpDir)
+
+	opts := DefaultOptions()
+	opts.OutputDir = tmpDir
+
+	gen := New(opts)
+
+	defData := map[string]interface{}{"preGreeting": "preBob", "postGreeting": "postBob"}
+	dp := skelplate.NewDataProvider(defData, 0)
+
+	err := gen.GenerateWithHooks("../testdata/generator/postgenhookserr", dp.DataProviderFunc, dp.HookProviderFunc)
+
+	if err == nil || !strings.HasPrefix(err.Error(), "error executing postGen hook") {
+		t.Errorf("wrong error: have (%s), want (%s)", err, "error executing postGen hook")
 	}
 
 }

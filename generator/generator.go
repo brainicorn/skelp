@@ -1,10 +1,14 @@
 package generator
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
+	"text/template"
 
 	"github.com/brainicorn/skelp/executor"
 	"github.com/brainicorn/skelp/provider"
@@ -22,6 +26,12 @@ const (
 )
 
 func (sg *SkelpGenerator) Generate(templateID string, dataProvider provider.DataProvider) error {
+	return sg.GenerateWithHooks(templateID, dataProvider, func(templateRoot string) (provider.Hooks, error) {
+		return provider.Hooks{}, nil
+	})
+}
+
+func (sg *SkelpGenerator) GenerateWithHooks(templateID string, dataProvider provider.DataProvider, hookProvider provider.HookProvider) error {
 	var err error
 
 	if skelputil.IsBlank(templateID) {
@@ -30,22 +40,23 @@ func (sg *SkelpGenerator) Generate(templateID string, dataProvider provider.Data
 
 	switch TypeForTemplateID(templateID) {
 	case TIDTypeAlias:
-		err = sg.aliasGeneration(templateID, dataProvider)
+		err = sg.aliasGeneration(templateID, dataProvider, hookProvider)
 	case TIDTypeFile:
-		err = sg.pathGeneration(templateID, dataProvider)
+		err = sg.pathGeneration(templateID, dataProvider, hookProvider)
 	case TIDTypeRepo:
-		err = sg.repoGeneration(templateID, dataProvider)
+		err = sg.repoGeneration(templateID, dataProvider, hookProvider)
 	}
 
 	return err
 }
 
-func (sg *SkelpGenerator) pathGeneration(rootTemplateDir string, dataProvider provider.DataProvider) error {
+func (sg *SkelpGenerator) pathGeneration(rootTemplateDir string, dataProvider provider.DataProvider, hookProvider provider.HookProvider) error {
 	var err error
 	var absRootTemplateDir string
 	var skelpTemplatespath string
 	var out string
 	var tmplData interface{}
+	var hooks provider.Hooks
 
 	absRootTemplateDir, err = filepath.Abs(rootTemplateDir)
 
@@ -64,6 +75,21 @@ func (sg *SkelpGenerator) pathGeneration(rootTemplateDir string, dataProvider pr
 
 	if err == nil && skelputil.IsBlank(out) {
 		out, err = os.Getwd()
+	}
+
+	if err == nil {
+		hooks, err = hookProvider(absRootTemplateDir)
+	}
+
+	if err == nil && !sg.skelpOptions.DryRun {
+		for _, h := range hooks.PreInput {
+			err = executeHookTemplate(h, sg.skelpOptions.OutputDir, sg.funcMap, sg.tOptions, nil)
+
+			if err != nil {
+				err = fmt.Errorf("error executing preInput hook %s: %s", h, err.Error())
+				break
+			}
+		}
 	}
 
 	if err == nil {
@@ -88,14 +114,36 @@ func (sg *SkelpGenerator) pathGeneration(rootTemplateDir string, dataProvider pr
 	}
 
 	if err == nil {
+		for _, h := range hooks.PreGen {
+			err = executeHookTemplate(h, sg.skelpOptions.OutputDir, sg.funcMap, sg.tOptions, tmplData)
+
+			if err != nil {
+				err = fmt.Errorf("error executing preGen hook %s: %s", h, err.Error())
+				break
+			}
+		}
+	}
+
+	if err == nil {
 		skelpExec := executor.New(sg.funcMap, sg.tOptions)
 		err = skelpExec.Execute(skelpTemplatespath, out, tmplData, sg.skelpOptions.OverwriteProvider)
+	}
+
+	if err == nil {
+		for _, h := range hooks.PostGen {
+			err = executeHookTemplate(h, sg.skelpOptions.OutputDir, sg.funcMap, sg.tOptions, tmplData)
+
+			if err != nil {
+				err = fmt.Errorf("error executing postGen hook %s: %s", h, err.Error())
+				break
+			}
+		}
 	}
 
 	return err
 }
 
-func (sg *SkelpGenerator) repoGeneration(templateID string, dataProvider provider.DataProvider) error {
+func (sg *SkelpGenerator) repoGeneration(templateID string, dataProvider provider.DataProvider, hookProvider provider.HookProvider) error {
 	var err error
 	var localTemplatePath string
 
@@ -118,7 +166,7 @@ func (sg *SkelpGenerator) repoGeneration(templateID string, dataProvider provide
 	}
 
 	if err == nil {
-		err = sg.pathGeneration(localTemplatePath, dataProvider)
+		err = sg.pathGeneration(localTemplatePath, dataProvider, hookProvider)
 	}
 
 	return err
@@ -190,14 +238,42 @@ func (sg *SkelpGenerator) checkForUpdates(u, path string) error {
 
 }
 
-func (sg *SkelpGenerator) aliasGeneration(templateID string, dataProvider provider.DataProvider) error {
+func (sg *SkelpGenerator) aliasGeneration(templateID string, dataProvider provider.DataProvider, hookProvider provider.HookProvider) error {
 	var err error
 	var aliasedTemplateID string
 
 	aliasedTemplateID, err = sg.IDForAlias(templateID)
 
 	if err == nil {
-		err = sg.Generate(aliasedTemplateID, dataProvider)
+		err = sg.GenerateWithHooks(aliasedTemplateID, dataProvider, hookProvider)
+	}
+
+	return err
+}
+
+func executeHookTemplate(cmdString string, wdir string, funcMap map[string]interface{}, options []string, tmplData interface{}) error {
+	var err error
+	var hookTemplate *template.Template
+	var cmdBuf bytes.Buffer
+	var args []string
+
+	hookTemplate, err = template.New("hookTmpl").Option(options...).Funcs(funcMap).Parse(cmdString)
+
+	if err == nil {
+		err = hookTemplate.Execute(&cmdBuf, tmplData)
+	}
+
+	if err == nil {
+		cmdSplit := strings.Split(cmdBuf.String(), " ")
+		script := cmdSplit[0]
+
+		if len(cmdSplit) > 1 {
+			args = cmdSplit[1:]
+		}
+
+		cmd := exec.Command(script, args...)
+		cmd.Dir = wdir
+		err = cmd.Run()
 	}
 
 	return err

@@ -72,21 +72,87 @@ var tmplErrTests = []struct {
 		map[string]interface{}{"beer": "yes"},
 		"unable to convert disabled value to a boolean:",
 	},
+	{
+		`{
+				"author": "brainicorn",
+				"variables":[{"name":"beer", "default":"yes"}],
+				"hooks":{
+					"preInput":["../badscript.sh"]
+				}
+			}`,
+		map[string]interface{}{"beer": "yes"},
+		"error parsing hooks:",
+	},
+	{
+		`{
+				"author": "brainicorn",
+				"variables":[{"name":"beer", "default":"yes"}],
+				"hooks":{
+					"preGen":["../badscript.sh"]
+				}
+			}`,
+		map[string]interface{}{"beer": "yes"},
+		"error parsing hooks:",
+	},
+	{
+		`{
+				"author": "brainicorn",
+				"variables":[{"name":"beer", "default":"yes"}],
+				"hooks":{
+					"postGen":["../badscript.sh"]
+				}
+			}`,
+		map[string]interface{}{"beer": "yes"},
+		"error parsing hooks:",
+	},
+	{
+		`{
+				"author": "brainicorn",
+				"variables":[{"name":"beer", "default":"yes"}],
+				"hooks":{
+					"postGen":["goodscript.sh/../../../badscript.sh -a {{klb;fm ds}}"]
+				}
+			}`,
+		map[string]interface{}{"beer": "yes"},
+		"error parsing hooks:",
+	},
+	{
+		`{
+				"author": "brainicorn",
+				"variables":[{"name":"beer", "default":"yes"}],
+				"hooks":{
+					"postGen":["goodscript.sh -a {{klb;fm ds}}"]
+				}
+			}`,
+		map[string]interface{}{"beer": "yes"},
+		"error parsing hooks:",
+	},
+	{
+		`{
+				"author": "brainicorn",
+				"variables":[{"name":"beer", "default":"yes"}],
+				"hooks":{
+					"postGen":[""]
+				}
+			}`,
+		map[string]interface{}{"beer": "yes"},
+		"error parsing hooks:",
+	},
 }
 
 func TestTemplateParseErrors(t *testing.T) {
 
 	for _, tt := range tmplErrTests {
+		var err error
+		var descriptor SkelplateDescriptor
+
 		dp := NewDataProvider(tt.prefill, 0)
 
-		var descriptor SkelplateDescriptor
-		err := json.Unmarshal([]byte(tt.tmpl), &descriptor)
+		descriptor, err = ValidateDescriptor([]byte(tt.tmpl))
 
-		if err != nil {
-			t.Fatalf("error parsing descriptor: %s\n%s", tt.tmpl, err)
+		if err == nil {
+			_, err = dp.gatherData(descriptor)
 		}
-
-		_, err = dp.gatherData(descriptor)
 
 		if err == nil {
 			t.Fatalf("expected error but was nil: %s", tt.tmpl)
@@ -97,6 +163,28 @@ func TestTemplateParseErrors(t *testing.T) {
 		}
 
 	}
+}
+
+func TestBadHookErrors(t *testing.T) {
+	var err error
+	var descriptor SkelplateDescriptor
+
+	hookDescriptor := `{
+				"author": "brainicorn",
+				"hooks":[""],
+				"variables":[{"name":"beer", "default":"yes"}]
+			}`
+
+	err = json.Unmarshal([]byte(hookDescriptor), &descriptor)
+
+	if err == nil {
+		t.Fatalf("expected error but was nil: %s", hookDescriptor)
+	}
+
+	if !strings.HasPrefix(err.Error(), "json: cannot unmarshal") {
+		t.Fatalf("wrong error have (%s) want (%s)", err, "json: cannot unmarshal")
+	}
+
 }
 
 type fakeInterruptingUser struct {

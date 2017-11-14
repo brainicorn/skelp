@@ -25,6 +25,22 @@ func TestApply(t *testing.T) {
 	}
 }
 
+func TestApplyNoHooks(t *testing.T) {
+	out := new(bytes.Buffer)
+	tmpHomeDir, _ := ioutil.TempDir("", "skelp-custom-home")
+	defer os.RemoveAll(tmpHomeDir)
+
+	tmpOutputDir, _ := ioutil.TempDir("", "skelp-output")
+	defer os.RemoveAll(tmpOutputDir)
+
+	code := Execute([]string{"apply", "../testdata/generator/simple", "-q", "--no-hooks", "--no-color", "--force", "--offline", "--homedir", tmpHomeDir, "-o", tmpOutputDir, "-d", "../testdata/generator/simple-data.json"}, out)
+
+	if code != 0 {
+		fmt.Println(out)
+		t.Errorf("apply should not have errored")
+	}
+}
+
 func TestApplyDryRun(t *testing.T) {
 	out := new(bytes.Buffer)
 	tmpHomeDir, _ := ioutil.TempDir("", "skelp-custom-home")

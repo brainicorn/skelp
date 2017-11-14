@@ -1,9 +1,7 @@
 package skelplate
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -11,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/AlecAivazis/survey/core"
-	"github.com/xeipuuv/gojsonschema"
 )
 
 var tmplTests = []struct {
@@ -298,22 +295,11 @@ func TestGatherData(t *testing.T) {
 			in.Seek(0, os.SEEK_SET)
 		}
 
-		var descriptor SkelplateDescriptor
-
 		// validate our input
-		schemaLoader := gojsonschema.NewStringLoader(GithubComBrainicornSkelpSkelplateSkelplateDescriptor)
-		docLoader := gojsonschema.NewBytesLoader([]byte(tt.tmpl))
+		descriptor, verr := ValidateDescriptor([]byte(tt.tmpl))
 
-		schemaValidationResult, verr := gojsonschema.Validate(schemaLoader, docLoader)
-
-		if verr == nil && len(schemaValidationResult.Errors()) > 0 {
-			var errBuf bytes.Buffer
-			errBuf.WriteString("Error validating skelp descriptor:\n")
-			for _, re := range schemaValidationResult.Errors() {
-				errBuf.WriteString(fmt.Sprintf("  - %s\n", re))
-			}
-
-			t.Error(errBuf.String())
+		if verr != nil {
+			t.Error(verr)
 		}
 
 		// input is valid

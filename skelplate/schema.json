@@ -106,6 +106,31 @@
       ],
       "additionalProperties": false
     },
+    "github_com-brainicorn-skelp-skelplate-Hooks": {
+      "type": "object",
+      "title": "Hooks is the object that holds arrays of the various hook scripts.",
+      "description": "Each lifecycle can have an array of strings that represent the shell scripts to run.\nEach string should be the basename of the script file followed by any arguments.\nThe string will be processed as a Go Template so the args can use built-in functions and any data\nthat's available from gathering input. The script is assumed to live in the template repo's hooks driectory.\n",
+      "properties": {
+        "postGen": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "preGen": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "preInput": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "github_com-brainicorn-skelp-skelplate-MultiValue": {
       "type": "object",
       "title": "MultiValue allows the user to enter multiple values.",
@@ -274,6 +299,11 @@
     "description": {
       "type": "string",
       "title": "TemplateDesc is the description of the template."
+    },
+    "hooks": {
+      "$ref": "#/definitions/github_com-brainicorn-skelp-skelplate-Hooks",
+      "title": "TemplateHooks holds the scripts that can run during the generation process",
+      "description": "Each lifecycle can have an array of strings that represent the shell scripts to run.\nEach string should be the basename of the script file followed by any arguments.\nThe string will be processed as a Go Template so the args can use built-in functions and any data\nthat's available from gathering input. The script is assumed to live in the template repo's hooks driectory.\n"
     },
     "modified": {
       "type": "string",

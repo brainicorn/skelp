@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -10,7 +8,6 @@ import (
 	"github.com/brainicorn/skelp/skelplate"
 	"github.com/brainicorn/skelp/skelputil"
 	"github.com/spf13/cobra"
-	"github.com/xeipuuv/gojsonschema"
 )
 
 const (
@@ -42,7 +39,6 @@ func executeValidate(cmd *cobra.Command, args []string) error {
 	var err error
 	var jsonPath string
 	var descriptorBytes []byte
-	var schemaValidationResult *gojsonschema.Result
 
 	jsonPath, err = filepath.Abs(args[0])
 
@@ -57,20 +53,7 @@ func executeValidate(cmd *cobra.Command, args []string) error {
 	}
 
 	if err == nil {
-		schemaLoader := gojsonschema.NewStringLoader(skelplate.GithubComBrainicornSkelpSkelplateSkelplateDescriptor)
-		docLoader := gojsonschema.NewBytesLoader(descriptorBytes)
-
-		schemaValidationResult, err = gojsonschema.Validate(schemaLoader, docLoader)
-
-		if err == nil && len(schemaValidationResult.Errors()) > 0 {
-			var errBuf bytes.Buffer
-			errBuf.WriteString("Error validating skelp descriptor:\n")
-			for _, re := range schemaValidationResult.Errors() {
-				errBuf.WriteString(fmt.Sprintf("  - %s\n", re))
-			}
-
-			err = errors.New(errBuf.String())
-		}
+		_, err = skelplate.ValidateDescriptor(descriptorBytes)
 	}
 
 	if err == nil {

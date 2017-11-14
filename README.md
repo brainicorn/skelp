@@ -10,7 +10,8 @@
 # TODO:
   * add ability to use pre-configured data files in/from template repo
   * add ability to alias with input data variants
-
+  * add ability to run hook scripts in the template repo
+  * add replay ability
 ## Overview
 
 
@@ -72,7 +73,7 @@ And you can always type ```skelp help ``` to see all of skelp's commands/options
 
 ### For Template Authors
 - Full [golang template](https://golang.org/pkg/text/template/) support
-- Variables **everywhere**: within templates, file names, folder names, default values, variable names...
+- Variables **everywhere**: within templates, file names, folder names, default values...
 - Built-in [golang functions](https://golang.org/pkg/text/template/#hdr-Functions) support
 - Full [sprig functions](https://github.com/Masterminds/sprig) support
 - JSON-based project descriptor
@@ -87,7 +88,7 @@ And you can always type ```skelp help ``` to see all of skelp's commands/options
   - Masked input (passwords)
 - Ability to customize prompts per-variable
 - Define min/max length/values for input
-- Ordered input gathering for using previously inputted values in variables/defaults
+- Ordered input gathering for using previously inputed values in variables/defaults
 - Ability to use data files for "promptless" template testing
 
 ### For Golang Developers

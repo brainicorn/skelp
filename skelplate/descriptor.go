@@ -14,10 +14,6 @@ const (
 	typeSelect     = "select"
 )
 
-type VarCollection interface {
-	Variables() []TemplateVariable
-}
-
 type SkelplateDescriptor struct {
 	// TemplateAuthor is the author of the template.
 	TemplateAuthor string `json:"author"`
@@ -36,8 +32,23 @@ type SkelplateDescriptor struct {
 
 	// TemplateVariables holds the variables and their configuration for processing a template.
 	TemplateVariables []TemplateVariable `json:"variables"`
+
+	// TemplateHooks holds the scripts that can run during the generation process
+	TemplateHooks Hooks `json:"hooks"`
 }
 
+// Hooks is the object that holds arrays of the various hook scripts.
+// Each lifecycle can have an array of strings that represent the shell scripts to run.
+// Each string should be the basename of the script file followed by any arguments.
+// The string will be processed as a Go Template so the args can use built-in functions and any data
+// that's available from gathering input. The script is assumed to live in the template repo's hooks driectory.
+type Hooks struct {
+	PreInput []string `json:"preInput"`
+	PreGen   []string `json:"preGen"`
+	PostGen  []string `json:"postGen"`
+}
+
+// Variables returns the list of TemplateVariable objects in the descriptor
 func (sd *SkelplateDescriptor) Variables() []TemplateVariable {
 	return sd.TemplateVariables
 }
@@ -197,6 +208,9 @@ func (td *SkelplateDescriptor) UnmarshalJSON(data []byte) error {
 
 	if err == nil {
 		for k, v := range stuff {
+			if err != nil {
+				break
+			}
 			switch k {
 			case "author":
 				td.TemplateAuthor = v.(string)
@@ -206,6 +220,17 @@ func (td *SkelplateDescriptor) UnmarshalJSON(data []byte) error {
 				td.TemplateCreated, _ = time.Parse(time.RFC3339Nano, v.(string))
 			case "modified":
 				td.TemplateModified, _ = time.Parse(time.RFC3339Nano, v.(string))
+			case "hooks":
+				var hkbytes []byte
+				var hooks Hooks
+				hkbytes, err = json.Marshal(v)
+				if err == nil {
+					err = json.Unmarshal(hkbytes, &hooks)
+				}
+
+				if err == nil {
+					td.TemplateHooks = hooks
+				}
 			case "variables":
 				varSlice := []TemplateVariable{}
 				vars := v.([]interface{})

@@ -2,8 +2,6 @@ package skelplate
 
 import (
 	"bytes"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -13,8 +11,8 @@ import (
 	"text/template"
 
 	"github.com/brainicorn/skelp/prompter"
+	"github.com/brainicorn/skelp/provider"
 	"github.com/brainicorn/skelp/skelputil"
-	"github.com/xeipuuv/gojsonschema"
 )
 
 type Flag byte
@@ -26,6 +24,7 @@ const (
 
 const (
 	skelpFilename        = "skelp.json"
+	hooksDirName         = "hooks"
 	ErrSkelpFileNotFound = "skelp.json not found: %s"
 	indexSeparator       = ";"
 )
@@ -52,7 +51,7 @@ func (sdp *SkelplateDataProvider) DataProviderFunc(templateRoot string) (interfa
 	var data map[string]interface{}
 	var descriptorBytes []byte
 	var skelplate SkelplateDescriptor
-	var schemaValidationResult *gojsonschema.Result
+
 	jsonPath := filepath.Join(templateRoot, skelpFilename)
 	if !skelputil.PathExists(jsonPath) {
 		err = fmt.Errorf(ErrSkelpFileNotFound, jsonPath)
@@ -63,29 +62,67 @@ func (sdp *SkelplateDataProvider) DataProviderFunc(templateRoot string) (interfa
 	}
 
 	if err == nil {
-		schemaLoader := gojsonschema.NewStringLoader(GithubComBrainicornSkelpSkelplateSkelplateDescriptor)
-		docLoader := gojsonschema.NewBytesLoader(descriptorBytes)
-
-		schemaValidationResult, err = gojsonschema.Validate(schemaLoader, docLoader)
-
-		if err == nil && len(schemaValidationResult.Errors()) > 0 {
-			var errBuf bytes.Buffer
-			errBuf.WriteString("Error validating skelp descriptor:\n")
-			for _, re := range schemaValidationResult.Errors() {
-				errBuf.WriteString(fmt.Sprintf("  - %s\n", re))
-			}
-
-			err = errors.New(errBuf.String())
-		}
+		skelplate, err = ValidateDescriptor(descriptorBytes)
 	}
-	if err == nil {
-		err = json.Unmarshal(descriptorBytes, &skelplate)
-	}
+
 	if err == nil {
 		data, err = sdp.gatherData(skelplate)
 	}
 
 	return data, err
+}
+
+func (sdp *SkelplateDataProvider) HookProviderFunc(templateRoot string) (provider.Hooks, error) {
+	var err error
+	var descriptorBytes []byte
+	var skelplate SkelplateDescriptor
+
+	hooks := provider.Hooks{}
+
+	jsonPath := filepath.Join(templateRoot, skelpFilename)
+	if !skelputil.PathExists(jsonPath) {
+		err = fmt.Errorf(ErrSkelpFileNotFound, jsonPath)
+	}
+
+	if err == nil {
+		descriptorBytes, err = ioutil.ReadFile(jsonPath)
+	}
+
+	if err == nil {
+		skelplate, err = ValidateDescriptor(descriptorBytes)
+	}
+
+	hooksPath := filepath.Join(templateRoot, hooksDirName)
+
+	if err == nil {
+		hooks.PreInput, err = convertHooks(hooksPath, skelplate.TemplateHooks.PreInput)
+	}
+
+	if err == nil {
+		hooks.PreGen, err = convertHooks(hooksPath, skelplate.TemplateHooks.PreGen)
+	}
+
+	if err == nil {
+		hooks.PostGen, err = convertHooks(hooksPath, skelplate.TemplateHooks.PostGen)
+	}
+
+	return hooks, err
+}
+
+func convertHooks(basePath string, inHooks []string) ([]string, error) {
+	var err error
+	outHooks := make([]string, len(inHooks))
+
+	for i, h := range inHooks {
+		var absHook string
+
+		if err == nil {
+			absHook, err = filepath.Abs(filepath.Join(basePath, h))
+			outHooks[i] = absHook
+		}
+	}
+
+	return outHooks, err
 }
 
 func (sdp *SkelplateDataProvider) gatherData(descriptor SkelplateDescriptor) (map[string]interface{}, error) {

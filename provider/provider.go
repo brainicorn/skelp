@@ -5,6 +5,16 @@ import "github.com/brainicorn/skelp/prompter"
 // DataProvider is a function that returns the data to be applied to a template or an error
 type DataProvider func(templateRoot string) (interface{}, error)
 
+// Hooks is a struct for holding the various hook scripts to run
+type Hooks struct {
+	PreInput []string
+	PreGen   []string
+	PostGen  []string
+}
+
+// HookProvider is a function that returns the hooks to run or an error
+type HookProvider func(templateRoot string) (Hooks, error)
+
 // OverwriteProvider is a function that returns whether or not the provided file should be overwritten
 type OverwriteProvider func(rootDir, relFile string) bool
 

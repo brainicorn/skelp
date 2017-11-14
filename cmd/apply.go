@@ -23,6 +23,7 @@ var (
 	offline   bool
 	force     bool
 	dryrun    bool
+	nohooks   bool
 )
 
 func newApplyCommand() *cobra.Command {
@@ -39,6 +40,7 @@ func newApplyCommand() *cobra.Command {
 	applyCmd.Flags().BoolVar(&offline, "offline", false, "turns off auto-downloading/updating of templates")
 	applyCmd.Flags().BoolVarP(&force, "force", "f", false, "force overwriting of files without asking")
 	applyCmd.Flags().BoolVar(&dryrun, "dry-run", false, "just gather data, no generation (for testing)")
+	applyCmd.Flags().BoolVar(&nohooks, "no-hooks", false, "do not run any hook scripts during generation")
 
 	return applyCmd
 }
@@ -100,7 +102,13 @@ func executeApply(cmd *cobra.Command, args []string) error {
 		}
 
 		dp := skelplate.NewDataProvider(defData, flags)
-		err = gen.Generate(args[0], dp.DataProviderFunc)
+
+		if nohooks {
+			err = gen.Generate(args[0], dp.DataProviderFunc)
+		} else {
+			err = gen.GenerateWithHooks(args[0], dp.DataProviderFunc, dp.HookProviderFunc)
+		}
+
 	}
 
 	return err

@@ -1,0 +1,24 @@
+{
+  "author": "brainicorn",
+  "hooks": {
+ 	"preInput":["greetme.sh preinput.txt {{ repeat 3 \"yo \" }}"],
+	"preGen":["greetme.sh pregen.txt {{ .preGreeting }}"],
+	"postGen":["greetmeerr.sh postgen.txt {{ .postGreeting }}"]
+  },
+  "variables": [
+    {
+      "name": "preGreeting",
+      "default": "",
+      "prompt":"Enter a preGreeting:",
+      "required":true,
+      "min":3
+    },
+    {
+      "name": "postGreeting",
+      "default": "",
+      "prompt":"Enter a postGreeting:",
+      "required":true,
+      "min":3
+    }
+  ]
+}
