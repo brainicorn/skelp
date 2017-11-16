@@ -94,8 +94,6 @@ func executeApply(cmd *cobra.Command, args []string) error {
 	}
 
 	if err == nil {
-		gen := generator.New(opts)
-
 		var flags skelplate.Flag = 0
 		if opts.QuietMode {
 			flags = skelplate.UseDefaults | skelplate.SkipMulti
@@ -103,12 +101,12 @@ func executeApply(cmd *cobra.Command, args []string) error {
 
 		dp := skelplate.NewDataProvider(defData, flags)
 
-		if nohooks {
-			err = gen.Generate(args[0], dp.DataProviderFunc)
-		} else {
-			err = gen.GenerateWithHooks(args[0], dp.DataProviderFunc, dp.HookProviderFunc)
+		if !nohooks {
+			opts.HookProvider = dp.HookProviderFunc
 		}
 
+		gen := generator.New(opts)
+		err = gen.Generate(args[0], dp.DataProviderFunc)
 	}
 
 	return err

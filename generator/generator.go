@@ -26,12 +26,6 @@ const (
 )
 
 func (sg *SkelpGenerator) Generate(templateID string, dataProvider provider.DataProvider) error {
-	return sg.GenerateWithHooks(templateID, dataProvider, func(templateRoot string) (provider.Hooks, error) {
-		return provider.Hooks{}, nil
-	})
-}
-
-func (sg *SkelpGenerator) GenerateWithHooks(templateID string, dataProvider provider.DataProvider, hookProvider provider.HookProvider) error {
 	var err error
 
 	if skelputil.IsBlank(templateID) {
@@ -40,17 +34,17 @@ func (sg *SkelpGenerator) GenerateWithHooks(templateID string, dataProvider prov
 
 	switch TypeForTemplateID(templateID) {
 	case TIDTypeAlias:
-		err = sg.aliasGeneration(templateID, dataProvider, hookProvider)
+		err = sg.aliasGeneration(templateID, dataProvider)
 	case TIDTypeFile:
-		err = sg.pathGeneration(templateID, dataProvider, hookProvider)
+		err = sg.pathGeneration(templateID, dataProvider)
 	case TIDTypeRepo:
-		err = sg.repoGeneration(templateID, dataProvider, hookProvider)
+		err = sg.repoGeneration(templateID, dataProvider)
 	}
 
 	return err
 }
 
-func (sg *SkelpGenerator) pathGeneration(rootTemplateDir string, dataProvider provider.DataProvider, hookProvider provider.HookProvider) error {
+func (sg *SkelpGenerator) pathGeneration(rootTemplateDir string, dataProvider provider.DataProvider) error {
 	var err error
 	var absRootTemplateDir string
 	var skelpTemplatespath string
@@ -78,7 +72,7 @@ func (sg *SkelpGenerator) pathGeneration(rootTemplateDir string, dataProvider pr
 	}
 
 	if err == nil {
-		hooks, err = hookProvider(absRootTemplateDir)
+		hooks, err = sg.skelpOptions.HookProvider(absRootTemplateDir)
 	}
 
 	if err == nil && !sg.skelpOptions.DryRun {
@@ -143,7 +137,7 @@ func (sg *SkelpGenerator) pathGeneration(rootTemplateDir string, dataProvider pr
 	return err
 }
 
-func (sg *SkelpGenerator) repoGeneration(templateID string, dataProvider provider.DataProvider, hookProvider provider.HookProvider) error {
+func (sg *SkelpGenerator) repoGeneration(templateID string, dataProvider provider.DataProvider) error {
 	var err error
 	var localTemplatePath string
 
@@ -166,7 +160,7 @@ func (sg *SkelpGenerator) repoGeneration(templateID string, dataProvider provide
 	}
 
 	if err == nil {
-		err = sg.pathGeneration(localTemplatePath, dataProvider, hookProvider)
+		err = sg.pathGeneration(localTemplatePath, dataProvider)
 	}
 
 	return err
@@ -238,14 +232,14 @@ func (sg *SkelpGenerator) checkForUpdates(u, path string) error {
 
 }
 
-func (sg *SkelpGenerator) aliasGeneration(templateID string, dataProvider provider.DataProvider, hookProvider provider.HookProvider) error {
+func (sg *SkelpGenerator) aliasGeneration(templateID string, dataProvider provider.DataProvider) error {
 	var err error
 	var aliasedTemplateID string
 
 	aliasedTemplateID, err = sg.IDForAlias(templateID)
 
 	if err == nil {
-		err = sg.GenerateWithHooks(aliasedTemplateID, dataProvider, hookProvider)
+		err = sg.Generate(aliasedTemplateID, dataProvider)
 	}
 
 	return err
