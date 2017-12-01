@@ -14,7 +14,7 @@ import (
 const (
 	defaultSkelpDir           = ".skelp"
 	skelpTemplatesDirname     = "templates"
-	skelpAliasesFilename      = "aliases.gob"
+	skelpAliasesFilename      = "aliases.cfg"
 	skelpTemplateCacheDirname = "gitcache"
 )
 

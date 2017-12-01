@@ -1,7 +1,7 @@
 package generator
 
 import (
-	"encoding/gob"
+	"encoding/csv"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -16,11 +16,17 @@ const (
 	ErrInvalidAliasTemplate = "Invalid alias template: '%s' must be a filepath or url"
 )
 
-type aliasRegistry map[string]string
+type aliasRegistry map[string]aliasEntry
+
+type aliasEntry struct {
+	Name string
+	Path string
+}
 
 func (sg *SkelpGenerator) IDForAlias(alias string) (string, error) {
 	var err error
 	var templateID string
+	var entry aliasEntry
 	var found bool
 
 	if sg.aliases == nil {
@@ -28,10 +34,12 @@ func (sg *SkelpGenerator) IDForAlias(alias string) (string, error) {
 	}
 
 	if err == nil {
-		templateID, found = sg.aliases[alias]
+		entry, found = sg.aliases[alias]
 
 		if !found {
 			err = fmt.Errorf(ErrAliasNotFound, alias)
+		} else {
+			templateID = entry.Path
 		}
 	}
 
@@ -61,7 +69,7 @@ func (sg *SkelpGenerator) AddAlias(alias, fileOrUrl string) error {
 		}
 
 		if err == nil {
-			sg.aliases[alias] = aliasPath
+			sg.aliases[alias] = aliasEntry{Name: alias, Path: aliasPath}
 		}
 	}
 
@@ -85,17 +93,22 @@ func (sg *SkelpGenerator) RemoveAlias(alias string) error {
 	return sg.saveAliases(aliasPath, err)
 }
 
-func (sg *SkelpGenerator) AliasMap() (map[string]string, error) {
+func (sg *SkelpGenerator) AliasEntries() ([]aliasEntry, error) {
 	var err error
+	entries := []aliasEntry{}
 
 	_, err = sg.initAliasRegistry()
 
-	return sg.aliases, err
+	for _, entry := range sg.aliases {
+		entries = append(entries, entry)
+	}
+	return entries, err
 }
 
 func (sg *SkelpGenerator) saveAliases(path string, initialErr error) error {
 	var err error
 	var file *os.File
+	records := [][]string{{}}
 
 	aliases := aliasRegistry{}
 	err = initialErr
@@ -105,33 +118,54 @@ func (sg *SkelpGenerator) saveAliases(path string, initialErr error) error {
 			aliases = sg.aliases
 		}
 
+		for _, alias := range aliases {
+			records = append(records, []string{alias.Name, alias.Path})
+		}
+
 		file, err = os.Create(path)
 	}
 
 	if err == nil {
-		encoder := gob.NewEncoder(file)
+		defer file.Close()
+
+		writer := csv.NewWriter(file)
+		defer writer.Flush()
+
 		sg.mu.Lock()
-		encoder.Encode(aliases)
+		err = writer.WriteAll(records)
 		sg.mu.Unlock()
 	}
 
-	file.Close()
 	return err
 }
 
 func (sg *SkelpGenerator) loadAliases(path string) error {
 	var err error
 	var file *os.File
+	var records [][]string
 
 	if sg.aliases == nil {
 		file, err = os.Open(path)
 		if err == nil {
-			decoder := gob.NewDecoder(file)
+			defer file.Close()
+			reader := csv.NewReader(file)
 			sg.mu.Lock()
-			err = decoder.Decode(&sg.aliases)
+			records, err = reader.ReadAll()
 			sg.mu.Unlock()
+
+			if err == nil {
+				sg.aliases = make(map[string]aliasEntry)
+
+				for _, record := range records {
+					entry := aliasEntry{
+						Name: record[0],
+						Path: record[1],
+					}
+
+					sg.aliases[record[0]] = entry
+				}
+			}
 		}
-		file.Close()
 	}
 
 	return err

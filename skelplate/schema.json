@@ -296,7 +296,7 @@
         },
         "paths": {
           "type": "array",
-          "title": "FilesOrDirs holds the paths that should be excluded when Exclusde is true.",
+          "title": "FilesOrDirs holds the paths that should be excluded when Excludes is true.",
           "items": {
             "type": "string"
           }

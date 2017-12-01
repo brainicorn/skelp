@@ -102,16 +102,15 @@ func executeAliasAdd(cmd *cobra.Command, args []string) error {
 func executeAliasList(cmd *cobra.Command, args []string) error {
 	gen := generator.New(getBaseOptions())
 
-	aliasMap, err := gen.AliasMap()
+	entries, err := gen.AliasEntries()
 
 	if err == nil {
 		cmd.Println("------------------")
 		cmd.Println("Registered Aliases")
 		cmd.Println("------------------")
 
-		for k, v := range aliasMap {
-
-			cmd.Println(fmt.Sprintf("%s -> %s", ansi.Color(k, "green+b"), ansi.Color(v, "blue+h")))
+		for _, v := range entries {
+			cmd.Println(fmt.Sprintf("%s -> %s", ansi.Color(v.Name, "green+b"), ansi.Color(v.Path, "blue+h")))
 		}
 	}
 
