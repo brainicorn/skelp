@@ -120,7 +120,7 @@ func (sg *SkelpGenerator) pathGeneration(rootTemplateDir string, dataProvider pr
 
 	if err == nil {
 		skelpExec := executor.New(sg.funcMap, sg.tOptions)
-		err = skelpExec.Execute(skelpTemplatespath, out, tmplData, sg.skelpOptions.OverwriteProvider)
+		err = skelpExec.Execute(skelpTemplatespath, out, tmplData, sg.skelpOptions.OverwriteProvider, sg.skelpOptions.ExcludesProvider)
 	}
 
 	if err == nil {

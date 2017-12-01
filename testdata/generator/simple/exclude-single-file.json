@@ -1,0 +1,33 @@
+{
+  "author": "brainicorn",
+  "excludes":[
+    {
+      "exclude":"true",
+	  "paths":["README.md"]
+	}
+  ],
+  "variables": [
+    {
+      "name": "projectName",
+      "default": "",
+      "prompt":"Enter a project name:",
+      "required":true,
+      "min":3
+    },
+    {
+      "name": "packageName",
+      "default": "",
+      "prompt":"Enter a package name:",
+      "required":true,
+      "min":3
+    },
+	{
+      "name": "disabledVar",
+      "default": "",
+      "prompt":"This shouldn't prompt",
+      "required":true,
+      "min":3,
+	  "disabled": "true"
+    }
+  ]
+}

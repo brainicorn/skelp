@@ -29,8 +29,9 @@ func New(funcMap map[string]interface{}, options []string) *WalkingExecutor {
 	}
 }
 
-func (we *WalkingExecutor) Execute(tmplDir, outputDir string, tmplData interface{}, owProvider provider.OverwriteProvider) error {
+func (we *WalkingExecutor) Execute(tmplDir, outputDir string, tmplData interface{}, owProvider provider.OverwriteProvider, exProvider provider.ExcludesProvider) error {
 	var err error
+	var excludes map[string]bool
 
 	if skelputil.IsBlank(tmplDir) || !skelputil.PathExists(tmplDir) || skelputil.DirIsEmpty(tmplDir) {
 		err = fmt.Errorf(ErrNoTemplatesFound, tmplDir)
@@ -45,6 +46,10 @@ func (we *WalkingExecutor) Execute(tmplDir, outputDir string, tmplData interface
 	}
 
 	if err == nil {
+		excludes, err = exProvider(tmplDir)
+	}
+
+	if err == nil {
 		err = filepath.Walk(tmplDir, func(curPath string, fi os.FileInfo, werr error) error {
 			var terr error
 			var relTarget string
@@ -56,11 +61,19 @@ func (we *WalkingExecutor) Execute(tmplDir, outputDir string, tmplData interface
 			}
 
 			if terr == nil {
+				_, exclude := excludes[relTarget]
+
 				if fi.IsDir() {
+					if exclude {
+						return filepath.SkipDir
+					}
 					return skelputil.MkdirAll(filepath.Join(outputDir, relTarget))
 				}
 
-				terr = we.processFileTemplate(outputDir, relTarget, curPath, tmplData, owProvider)
+				if !exclude {
+					terr = we.processFileTemplate(outputDir, relTarget, curPath, tmplData, owProvider)
+				} else {
+				}
 			}
 
 			return terr

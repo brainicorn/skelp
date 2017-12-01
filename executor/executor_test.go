@@ -11,7 +11,7 @@ import (
 
 func TestEmptyTemplatesDir(t *testing.T) {
 	exec := New(nil, []string{})
-	err := exec.Execute("/tmp/noexist", "/tmp", nil, provider.DefaultOverwriteProvider)
+	err := exec.Execute("/tmp/noexist", "/tmp", nil, provider.DefaultOverwriteProvider, provider.DefaultExcludesProvider)
 
 	if err == nil || !strings.HasPrefix(err.Error(), "No templates found in ") {
 		t.Errorf("invalid err, want (%s), have (%s)", "No templates found in ", err.Error())
@@ -20,7 +20,7 @@ func TestEmptyTemplatesDir(t *testing.T) {
 
 func TestEmptyOutputDir(t *testing.T) {
 	exec := New(nil, []string{})
-	err := exec.Execute("../testdata/generator/simple", "", nil, provider.DefaultOverwriteProvider)
+	err := exec.Execute("../testdata/generator/simple", "", nil, provider.DefaultOverwriteProvider, provider.DefaultExcludesProvider)
 
 	if err == nil || !strings.HasPrefix(err.Error(), "Output directory not provided") {
 		t.Errorf("invalid err, want (%s), have (%s)", "Output directory not provided", err.Error())
@@ -36,8 +36,10 @@ func TestOutputDirCreated(t *testing.T) {
 
 	defer os.RemoveAll(outputPath)
 
+	testdata := map[string]string{"projectName": "testprj", "packageName": "testpkg"}
+
 	exec := New(nil, []string{})
-	exec.Execute("../testdata/generator/simple", outputPath, nil, provider.DefaultOverwriteProvider)
+	exec.Execute("../testdata/generator/simple", outputPath, testdata, provider.DefaultOverwriteProvider, provider.DefaultExcludesProvider)
 
 	if !skelputil.PathExists(outputPath) {
 		t.Errorf("ouput path (%) should have been created", outputPath)

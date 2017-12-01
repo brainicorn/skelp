@@ -29,6 +29,7 @@ type SkelpOptions struct {
 	OverwriteProvider provider.OverwriteProvider
 	BasicAuthProvider provider.BasicAuthProvider
 	HookProvider      provider.HookProvider
+	ExcludesProvider  provider.ExcludesProvider
 }
 
 func DefaultOptions() SkelpOptions {
@@ -40,6 +41,7 @@ func DefaultOptions() SkelpOptions {
 		OverwriteProvider: provider.DefaultOverwriteProvider,
 		BasicAuthProvider: bap.ProvideAuth,
 		HookProvider:      provider.DefaultHookProvider,
+		ExcludesProvider:  provider.DefaultExcludesProvider,
 	}
 }
 

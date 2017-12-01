@@ -35,6 +35,19 @@ type SkelplateDescriptor struct {
 
 	// TemplateHooks holds the scripts that can run during the generation process
 	TemplateHooks Hooks `json:"hooks"`
+
+	// TemplateExcludes allows for conditionally excluding certain template files from processing
+	TemplateExcludes []TemplateExclude `json:"excludes"`
+}
+
+// TemplateExclude holds a condition, which if true excludes the list of template paths from processing
+type TemplateExclude struct {
+	// Exclude is a go template that should evalutate to true or false.
+	// If it evaluates to true, the list of template paths will be excluded from processing
+	Exclude string `json:"exclude"`
+
+	// FilesOrDirs holds the paths that should be excluded when Excludes is true.
+	FilesOrDirs []string `json:"paths"`
 }
 
 // Hooks is the object that holds arrays of the various hook scripts.
@@ -230,6 +243,17 @@ func (td *SkelplateDescriptor) UnmarshalJSON(data []byte) error {
 
 				if err == nil {
 					td.TemplateHooks = hooks
+				}
+			case "excludes":
+				var exbytes []byte
+				var texcludes []TemplateExclude
+				exbytes, err = json.Marshal(v)
+				if err == nil {
+					err = json.Unmarshal(exbytes, &texcludes)
+				}
+
+				if err == nil {
+					td.TemplateExcludes = texcludes
 				}
 			case "variables":
 				varSlice := []TemplateVariable{}

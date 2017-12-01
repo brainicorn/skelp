@@ -105,6 +105,8 @@ func executeApply(cmd *cobra.Command, args []string) error {
 			opts.HookProvider = dp.HookProviderFunc
 		}
 
+		opts.ExcludesProvider = dp.ExcludesProviderFunc
+
 		gen := generator.New(opts)
 		err = gen.Generate(args[0], dp.DataProviderFunc)
 	}

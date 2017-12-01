@@ -72,7 +72,7 @@ And you can always type ```skelp help ``` to see all of skelp's commands/options
 
 ### For Template Authors
 - Full [golang template](https://golang.org/pkg/text/template/) support
-- Variables **everywhere**: within templates, file names, folder names, default values...
+- Variables within templates, file names, folder names, default values...
 - Built-in [golang functions](https://golang.org/pkg/text/template/#hdr-Functions) support
 - Full [sprig functions](https://github.com/Masterminds/sprig) support
 - JSON-based project descriptor
@@ -89,6 +89,7 @@ And you can always type ```skelp help ``` to see all of skelp's commands/options
 - Define min/max length/values for input
 - Ordered input gathering for using previously inputed values in variables/defaults
 - Ability to use data files for "promptless" template testing
+- Ability to exclude files/dirs based on template conditions
 
 ### For Golang Developers
 - Anything the CLI can do can be done programatically
@@ -100,6 +101,7 @@ And you can always type ```skelp help ``` to see all of skelp's commands/options
   - basically like executing a single template in go, only traversing an entire directory of templates
 - "Pluggable" customization of the way input data is gathered (prompts, files, basically anything)
 - "Pluggable" customization of the way overwriting is determined
+- "Pluggable" customization of the way excludes are determined
 
 ## Basic Use
 

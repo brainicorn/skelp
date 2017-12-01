@@ -18,6 +18,7 @@ skelp apply [git-url|file-path|alias] [flags]
       --dry-run         just gather data, no generation (for testing)
   -f, --force           force overwriting of files without asking
   -h, --help            help for apply
+      --no-hooks        do not run any hook scripts during generation
       --offline         turns off auto-downloading/updating of templates
   -o, --output string   path to the directory where the template should be applied (default "current directory")
 ```

@@ -23,36 +23,49 @@ const (
 )
 
 const (
-	skelpFilename        = "skelp.json"
+	defaultSkelpFilename = "skelp.json"
 	hooksDirName         = "hooks"
 	ErrSkelpFileNotFound = "skelp.json not found: %s"
 	indexSeparator       = ";"
 )
 
 type SkelplateDataProvider struct {
-	data         map[string]interface{}
-	funcMap      map[string]interface{}
-	flags        Flag
-	tOptions     []string
-	beforePrompt func()
+	skelplate     *SkelplateDescriptor
+	prepopData    map[string]interface{}
+	funcMap       map[string]interface{}
+	finalData     interface{}
+	flags         Flag
+	tOptions      []string
+	skelpFilename string
+	beforePrompt  func()
 }
 
-func NewDataProvider(data map[string]interface{}, opts Flag) *SkelplateDataProvider {
+func NewDataProvider(prepopData map[string]interface{}, opts Flag) *SkelplateDataProvider {
 	return &SkelplateDataProvider{
-		data:     data,
-		funcMap:  skelputil.FunctionMap(),
-		tOptions: skelputil.TemplateOptions(),
-		flags:    opts,
+		prepopData:    prepopData,
+		funcMap:       skelputil.FunctionMap(),
+		tOptions:      skelputil.TemplateOptions(),
+		flags:         opts,
+		skelpFilename: defaultSkelpFilename,
 	}
 }
 
-func (sdp *SkelplateDataProvider) DataProviderFunc(templateRoot string) (interface{}, error) {
+func (sdp *SkelplateDataProvider) OverrideSkelpFilename(newName string) {
+	if len(strings.TrimSpace(newName)) > 3 {
+		sdp.skelpFilename = newName
+	}
+}
+
+func (sdp *SkelplateDataProvider) getDescriptor(templateRoot string) (SkelplateDescriptor, error) {
 	var err error
-	var data map[string]interface{}
 	var descriptorBytes []byte
 	var skelplate SkelplateDescriptor
 
-	jsonPath := filepath.Join(templateRoot, skelpFilename)
+	if sdp.skelplate != nil {
+		return *sdp.skelplate, nil
+	}
+
+	jsonPath := filepath.Join(templateRoot, sdp.skelpFilename)
 	if !skelputil.PathExists(jsonPath) {
 		err = fmt.Errorf(ErrSkelpFileNotFound, jsonPath)
 	}
@@ -66,7 +79,24 @@ func (sdp *SkelplateDataProvider) DataProviderFunc(templateRoot string) (interfa
 	}
 
 	if err == nil {
+		sdp.skelplate = &skelplate
+	}
+
+	return skelplate, err
+}
+func (sdp *SkelplateDataProvider) DataProviderFunc(templateRoot string) (interface{}, error) {
+	var err error
+	var skelplate SkelplateDescriptor
+	var data map[string]interface{}
+
+	skelplate, err = sdp.getDescriptor(templateRoot)
+
+	if err == nil {
 		data, err = sdp.gatherData(skelplate)
+	}
+
+	if err == nil {
+		sdp.finalData = data
 	}
 
 	return data, err
@@ -74,25 +104,12 @@ func (sdp *SkelplateDataProvider) DataProviderFunc(templateRoot string) (interfa
 
 func (sdp *SkelplateDataProvider) HookProviderFunc(templateRoot string) (provider.Hooks, error) {
 	var err error
-	var descriptorBytes []byte
 	var skelplate SkelplateDescriptor
 
 	hooks := provider.Hooks{}
-
-	jsonPath := filepath.Join(templateRoot, skelpFilename)
-	if !skelputil.PathExists(jsonPath) {
-		err = fmt.Errorf(ErrSkelpFileNotFound, jsonPath)
-	}
-
-	if err == nil {
-		descriptorBytes, err = ioutil.ReadFile(jsonPath)
-	}
-
-	if err == nil {
-		skelplate, err = ValidateDescriptor(descriptorBytes)
-	}
-
 	hooksPath := filepath.Join(templateRoot, hooksDirName)
+
+	skelplate, err = sdp.getDescriptor(templateRoot)
 
 	if err == nil {
 		hooks.PreInput, err = convertHooks(hooksPath, skelplate.TemplateHooks.PreInput)
@@ -123,6 +140,71 @@ func convertHooks(basePath string, inHooks []string) ([]string, error) {
 	}
 
 	return outHooks, err
+}
+
+func (sdp *SkelplateDataProvider) ExcludesProviderFunc(templateRoot string) (map[string]bool, error) {
+	var err error
+	var skelplate SkelplateDescriptor
+	var doExclusion bool
+
+	excludedFiles := make(map[string]bool)
+
+	skelplate, err = sdp.getDescriptor(templateRoot)
+
+	if err == nil {
+		for _, te := range skelplate.TemplateExcludes {
+			if err == nil {
+				doExclusion, err = executeExcludeCondition(te.Exclude, sdp.funcMap, sdp.tOptions, sdp.finalData)
+				if doExclusion {
+					err = processExclusionTemplates(te.FilesOrDirs, excludedFiles, sdp.funcMap, sdp.tOptions, sdp.finalData)
+				}
+			}
+		}
+	}
+
+	return excludedFiles, err
+}
+
+func executeExcludeCondition(conditionString string, funcMap map[string]interface{}, options []string, tmplData interface{}) (bool, error) {
+	var err error
+	var conditionTemplate *template.Template
+	var boolBuf bytes.Buffer
+	var doExclude bool
+
+	conditionTemplate, err = template.New("conditionTmpl").Option(options...).Funcs(funcMap).Parse(conditionString)
+
+	if err == nil {
+		err = conditionTemplate.Execute(&boolBuf, tmplData)
+	}
+
+	if err == nil {
+		doExclude, err = strconv.ParseBool(boolBuf.String())
+	}
+
+	return doExclude, err
+}
+
+func processExclusionTemplates(filesOrDirs []string, exclusions map[string]bool, funcMap map[string]interface{}, options []string, tmplData interface{}) error {
+	var err error
+	var exclusionTemplate *template.Template
+
+	for _, fileOrDir := range filesOrDirs {
+		var excludeBuf bytes.Buffer
+
+		if err == nil {
+			exclusionTemplate, err = template.New("exclusionTmpl").Option(options...).Funcs(funcMap).Parse(fileOrDir)
+
+			if err == nil {
+				err = exclusionTemplate.Execute(&excludeBuf, tmplData)
+			}
+
+			if err == nil {
+				exclusions[excludeBuf.String()] = true
+			}
+		}
+	}
+
+	return err
 }
 
 func (sdp *SkelplateDataProvider) gatherData(descriptor SkelplateDescriptor) (map[string]interface{}, error) {
@@ -183,7 +265,7 @@ func (sdp *SkelplateDataProvider) gatherVariableData(variables []TemplateVariabl
 						// we also need to ensure we loop at least as many times as we have provided data
 						objPath := strings.Join(curParents, ".")
 						minIndex := 0
-						if providedObjArray, gotDataObjs := getDotKeyFromMap(objPath, sdp.data); gotDataObjs {
+						if providedObjArray, gotDataObjs := getDotKeyFromMap(objPath, sdp.prepopData); gotDataObjs {
 							minIndex = len(providedObjArray.([]map[string]interface{})) - 1
 						}
 
@@ -290,7 +372,7 @@ func (sdp *SkelplateDataProvider) prefillDataVar(varname string, defval interfac
 	var err error
 	varpath := strings.Join(append(parents, varname), ".")
 
-	if dataval, gotdata = getDotKeyFromMap(varpath, sdp.data); gotdata {
+	if dataval, gotdata = getDotKeyFromMap(varpath, sdp.prepopData); gotdata {
 		fillerVal := dataval
 
 		typeOfDefval := reflect.TypeOf(defval)

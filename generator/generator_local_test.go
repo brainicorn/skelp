@@ -11,6 +11,7 @@ import (
 
 	"github.com/brainicorn/skelp/provider"
 	"github.com/brainicorn/skelp/skelplate"
+	"github.com/brainicorn/skelp/skelputil"
 )
 
 var (
@@ -521,6 +522,56 @@ func TestPostGenHookErr(t *testing.T) {
 
 	if err == nil || !strings.HasPrefix(err.Error(), "error executing postGen hook") {
 		t.Errorf("wrong error: have (%s), want (%s)", err, "error executing postGen hook")
+	}
+}
+
+func TestLocalExcludeSingleFileSimple(t *testing.T) {
+
+	tmpDir, _ := ioutil.TempDir("", "skelp-localgen-test")
+	defer os.RemoveAll(tmpDir)
+
+	defData := map[string]interface{}{"projectName": projectNameLocal, "packageName": packageNameLocal}
+	dp := skelplate.NewDataProvider(defData, 0)
+	dp.OverrideSkelpFilename("exclude-single-file.json")
+
+	opts := DefaultOptions()
+	opts.OutputDir = tmpDir
+	opts.ExcludesProvider = dp.ExcludesProviderFunc
+
+	gen := New(opts)
+
+	err := gen.Generate("../testdata/generator/simple", dp.DataProviderFunc)
+
+	if err != nil {
+		t.Errorf("generation error: %s", err)
+	}
+
+	readmePath := filepath.Join(tmpDir, readmeFmtLocal)
+	projectPath := filepath.Join(tmpDir, fmt.Sprintf(projectFmtLocal, projectNameLocal))
+	packagePath := filepath.Join(tmpDir, fmt.Sprintf(packageFmtLocal, packageNameLocal, packageNameLocal))
+
+	if skelputil.PathExists(readmePath) {
+		t.Errorf("readme exists but should not: %s", readmePath)
+	}
+
+	prjfile, err := ioutil.ReadFile(projectPath)
+
+	if err != nil {
+		t.Errorf("can't open out file (%s): %s", projectPath, err)
+	}
+
+	pkgfile, err := ioutil.ReadFile(packagePath)
+
+	if err != nil {
+		t.Errorf("can't open out file (%s): %s", packagePath, err)
+	}
+
+	if string(prjfile) != projectExpectedLocal {
+		t.Errorf("contents don't match, have (%s), want (%s)", string(prjfile), projectExpectedLocal)
+	}
+
+	if string(pkgfile) != packageExpectedLocal {
+		t.Errorf("contents don't match, have (%s), want (%s)", string(pkgfile), packageExpectedLocal)
 	}
 
 }

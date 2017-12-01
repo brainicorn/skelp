@@ -284,6 +284,24 @@
         "default"
       ],
       "additionalProperties": false
+    },
+    "github_com-brainicorn-skelp-skelplate-TemplateExclude": {
+      "type": "object",
+      "title": "TemplateExclude holds a condition, which if true excludes the list of template paths from processing",
+      "properties": {
+        "exclude": {
+          "type": "string",
+          "title": "Exclude is a go template that should evalutate to true or false.",
+          "description": "If it evaluates to true, the list of template paths will be excluded from processing\n"
+        },
+        "paths": {
+          "type": "array",
+          "title": "FilesOrDirs holds the paths that should be excluded when Exclusde is true.",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     }
   },
   "properties": {
@@ -299,6 +317,13 @@
     "description": {
       "type": "string",
       "title": "TemplateDesc is the description of the template."
+    },
+    "excludes": {
+      "type": "array",
+      "title": "TemplateExcludes allows for conditionally excluding certain template files from processing",
+      "items": {
+        "$ref": "#/definitions/github_com-brainicorn-skelp-skelplate-TemplateExclude"
+      }
     },
     "hooks": {
       "$ref": "#/definitions/github_com-brainicorn-skelp-skelplate-Hooks",
