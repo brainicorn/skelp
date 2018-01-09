@@ -124,6 +124,10 @@ func (sg *SkelpGenerator) pathGeneration(rootTemplateDir string, dataProvider pr
 	}
 
 	if err == nil {
+		sg.skelpOptions.ReplayProvider.WriteData(tmplData, sg.skelpOptions.OutputDir, rootTemplateDir)
+	}
+
+	if err == nil {
 		for _, h := range hooks.PostGen {
 			err = executeHookTemplate(h, sg.skelpOptions.OutputDir, sg.funcMap, sg.tOptions, tmplData)
 

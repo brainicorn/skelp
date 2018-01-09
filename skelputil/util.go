@@ -3,6 +3,7 @@ package skelputil
 import (
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/Masterminds/sprig"
@@ -58,6 +59,23 @@ func MkdirAll(path string) error {
 
 }
 
+func SafeFilenameFromPath(p string) string {
+	filename := filepath.Clean(filepath.ToSlash(p))
+
+	if strings.HasPrefix(filename, "/") || strings.HasPrefix(filename, ".") {
+		filename = filename[1:]
+	}
+
+	if strings.HasSuffix(filename, "/") || strings.HasSuffix(filename, ".") {
+		filename = filename[:len(filename)-1]
+	}
+
+	filename = strings.Replace(filename, " ", "_", -1)
+	filename = strings.Replace(filename, "/", "-", -1)
+
+	return filename
+}
+
 func GetFileMode(path string) (os.FileMode, error) {
 	var err error
 	var source *os.File
@@ -78,6 +96,22 @@ func GetFileMode(path string) (os.FileMode, error) {
 	}
 
 	return mode, err
+}
+
+func ListFilesByExtension(dir, ext string) []string {
+	files := []string{}
+
+	filepath.Walk(dir, func(curPath string, fi os.FileInfo, _ error) error {
+		if !fi.IsDir() {
+			if filepath.Ext(curPath) == ext {
+				files = append(files, fi.Name())
+			}
+		}
+
+		return nil
+	})
+
+	return files
 }
 
 func IsBlank(s string) bool {

@@ -11,7 +11,7 @@ func TestBadDotKeyLookup(t *testing.T) {
 
 	datamap["root"] = submap
 
-	_, found := getDotKeyFromMap("root.slug.slow", datamap)
+	_, found := valueFromMapByDotKey("root.slug.slow", datamap)
 
 	if found {
 		t.Error("should return false for bad key")

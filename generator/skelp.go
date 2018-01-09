@@ -30,6 +30,7 @@ type SkelpOptions struct {
 	BasicAuthProvider provider.BasicAuthProvider
 	HookProvider      provider.HookProvider
 	ExcludesProvider  provider.ExcludesProvider
+	ReplayProvider    provider.ReplayProvider
 }
 
 func DefaultOptions() SkelpOptions {
@@ -42,6 +43,7 @@ func DefaultOptions() SkelpOptions {
 		BasicAuthProvider: bap.ProvideAuth,
 		HookProvider:      provider.DefaultHookProvider,
 		ExcludesProvider:  provider.DefaultExcludesProvider,
+		ReplayProvider:    &provider.DefaultReplayProvider{},
 	}
 }
 

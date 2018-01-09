@@ -2,6 +2,7 @@ package skelplate
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -25,29 +26,88 @@ const (
 const (
 	defaultSkelpFilename = "skelp.json"
 	hooksDirName         = "hooks"
+	replayDirName        = ".skelpreplay"
 	ErrSkelpFileNotFound = "skelp.json not found: %s"
 	indexSeparator       = ";"
 )
 
 type SkelplateDataProvider struct {
-	skelplate     *SkelplateDescriptor
-	prepopData    map[string]interface{}
-	funcMap       map[string]interface{}
-	finalData     interface{}
-	flags         Flag
-	tOptions      []string
-	skelpFilename string
-	beforePrompt  func()
+	skelplate      *SkelplateDescriptor
+	prepopData     map[string]interface{}
+	funcMap        map[string]interface{}
+	finalData      interface{}
+	flags          Flag
+	tOptions       []string
+	skelpFilename  string
+	beforePrompt   func()
+	ReplayProvider skelplateReplayProvider
+}
+
+type skelplateReplayProvider struct {
+	removeForReplay []string
+}
+
+func (rp *skelplateReplayProvider) WriteData(data map[string]interface{}, projectRoot, templatePath string) (string, error) {
+	var err error
+	var jsonBytes []byte
+	var replayPath string
+
+	filename := skelputil.SafeFilenameFromPath(templatePath) + ".json"
+
+	for _, deleteMe := range rp.removeForReplay {
+		deleteFromMapByDotKey(deleteMe, data)
+	}
+
+	err = skelputil.MkdirAll(filepath.Join(projectRoot, replayDirName))
+
+	if err == nil {
+		jsonBytes, err = json.MarshalIndent(data, "", "  ")
+	}
+
+	if err == nil {
+
+		replayPath = filepath.Join(projectRoot, replayDirName, filename)
+
+		err = ioutil.WriteFile(replayPath, jsonBytes, 0664)
+	}
+
+	return replayPath, err
+}
+
+func (rp *skelplateReplayProvider) ReadData(projectRoot, templatePath string) (map[string]interface{}, error) {
+	var err error
+	var fileBytes []byte
+	var replayData map[string]interface{}
+
+	filename := skelputil.SafeFilenameFromPath(templatePath) + ".json"
+	replayPath := filepath.Join(projectRoot, replayDirName, filename)
+
+	if skelputil.PathExists(replayPath) {
+		fileBytes, err = ioutil.ReadFile(replayPath)
+	}
+
+	if err == nil {
+		err = json.Unmarshal(fileBytes, &replayData)
+	}
+
+	return replayData, err
 }
 
 func NewDataProvider(prepopData map[string]interface{}, opts Flag) *SkelplateDataProvider {
-	return &SkelplateDataProvider{
+	dp := &SkelplateDataProvider{
 		prepopData:    prepopData,
 		funcMap:       skelputil.FunctionMap(),
 		tOptions:      skelputil.TemplateOptions(),
 		flags:         opts,
 		skelpFilename: defaultSkelpFilename,
 	}
+
+	replay := skelplateReplayProvider{}
+	replay.removeForReplay = []string{}
+
+	dp.ReplayProvider = replay
+
+	return dp
 }
 
 func (sdp *SkelplateDataProvider) OverrideSkelpFilename(newName string) {
@@ -265,7 +325,7 @@ func (sdp *SkelplateDataProvider) gatherVariableData(variables []TemplateVariabl
 						// we also need to ensure we loop at least as many times as we have provided data
 						objPath := strings.Join(curParents, ".")
 						minIndex := 0
-						if providedObjArray, gotDataObjs := getDotKeyFromMap(objPath, sdp.prepopData); gotDataObjs {
+						if providedObjArray, gotDataObjs := valueFromMapByDotKey(objPath, sdp.prepopData); gotDataObjs {
 							minIndex = len(providedObjArray.([]map[string]interface{})) - 1
 						}
 
@@ -324,6 +384,21 @@ func (sdp *SkelplateDataProvider) gatherSingleVariable(v TemplateVariable, fille
 	var disabled bool
 	prefilled := false
 
+	if cv, isCustomized := v.(*CustomizedVar); isCustomized {
+		if cv.Password {
+			pathParts := make([]string, len(parents)+1)
+			copy(pathParts, parents)
+			pathParts[len(pathParts)-1] = v.Name()
+			objPath := v.Name()
+
+			if len(pathParts) > 1 {
+				objPath = strings.Join(pathParts, ".")
+			}
+
+			sdp.ReplayProvider.removeForReplay = append(sdp.ReplayProvider.removeForReplay, objPath)
+		}
+	}
+
 	disabled, err = sdp.isVariableDisabled(v, fillerData)
 
 	if err != nil || disabled {
@@ -372,7 +447,7 @@ func (sdp *SkelplateDataProvider) prefillDataVar(varname string, defval interfac
 	var err error
 	varpath := strings.Join(append(parents, varname), ".")
 
-	if dataval, gotdata = getDotKeyFromMap(varpath, sdp.prepopData); gotdata {
+	if dataval, gotdata = valueFromMapByDotKey(varpath, sdp.prepopData); gotdata {
 		fillerVal := dataval
 
 		typeOfDefval := reflect.TypeOf(defval)
@@ -506,7 +581,7 @@ func isStringSlice(valOf reflect.Value) bool {
 	return false
 }
 
-func getDotKeyFromMap(key string, data map[string]interface{}) (interface{}, bool) {
+func valueFromMapByDotKey(key string, data map[string]interface{}) (interface{}, bool) {
 	pathParts := strings.Split(key, ".")
 	parent := data
 	for i, k := range pathParts {
@@ -527,6 +602,30 @@ func getDotKeyFromMap(key string, data map[string]interface{}) (interface{}, boo
 	}
 
 	return nil, false
+}
+
+func deleteFromMapByDotKey(key string, data map[string]interface{}) bool {
+	pathParts := strings.Split(key, ".")
+	parent := data
+	for i, k := range pathParts {
+		key, aryIndex := getKeyAndIndex(k)
+		if val, ok := parent[key]; ok {
+			if i == len(pathParts)-1 {
+				delete(parent, key)
+				return true
+			}
+
+			if mapval, ismap := val.(map[string]interface{}); ismap {
+				parent = mapval
+			} else if arymapval, isarymap := val.([]map[string]interface{}); isarymap && aryIndex > -1 {
+				parent = arymapval[aryIndex]
+			} else {
+				break
+			}
+		}
+	}
+
+	return false
 }
 
 func getKeyAndIndex(varname string) (string, int) {

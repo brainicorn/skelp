@@ -9,7 +9,6 @@
 
 # TODO:
   * add ability to use pre-configured data files in/from template repo
-  * add ability to alias with input data variants
   * add replay ability
 ## Overview
 
