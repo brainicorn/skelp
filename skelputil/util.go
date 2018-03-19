@@ -15,7 +15,10 @@ const (
 
 func FunctionMap() map[string]interface{} {
 	fmap := sprig.FuncMap()
-
+	fmap["cwd"] = func() string {
+		s, _ := os.Getwd()
+		return s
+	}
 	return fmap
 }
 
