@@ -27,7 +27,9 @@ func FunctionMap() map[string]interface{} {
 			gopath = build.Default.GOPATH
 		}
 
-		return strings.TrimPrefix(input, gopath + string(filepath.Separator))
+		srcpath := gopath + string(filepath.Separator) + "src" + string(filepath.Separator)
+
+		return strings.TrimPrefix(input, srcpath)
 
 	}
 
