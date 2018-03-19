@@ -124,7 +124,7 @@ func (sg *SkelpGenerator) pathGeneration(rootTemplateDir string, dataProvider pr
 	}
 
 	if err == nil {
-		sg.skelpOptions.ReplayProvider.WriteData(tmplData, sg.skelpOptions.OutputDir, rootTemplateDir)
+		sg.skelpOptions.ReplayProvider.WriteData(asMap(tmplData), sg.skelpOptions.OutputDir, rootTemplateDir)
 	}
 
 	if err == nil {
@@ -139,6 +139,30 @@ func (sg *SkelpGenerator) pathGeneration(rootTemplateDir string, dataProvider pr
 	}
 
 	return err
+}
+
+func asMap(data interface{}) map[string]interface{} {
+	var m map[string]interface{}
+	var converted map[string]interface{}
+	var err error
+	var bites []byte
+	var alreadyMap bool
+
+	m, alreadyMap = data.(map[string]interface{})
+
+	if !alreadyMap {
+		bites, err = json.Marshal(data)
+
+		if err == nil {
+			err = json.Unmarshal(bites, &converted)
+		}
+
+		if err == nil {
+			m = converted
+		}
+	}
+
+	return m
 }
 
 func (sg *SkelpGenerator) repoGeneration(templateID string, dataProvider provider.DataProvider) error {
