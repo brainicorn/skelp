@@ -1,6 +1,7 @@
 package skelputil
 
 import (
+	"go/build"
 	"io"
 	"os"
 	"path/filepath"
@@ -19,6 +20,17 @@ func FunctionMap() map[string]interface{} {
 		s, _ := os.Getwd()
 		return s
 	}
+
+	fmap["stripgosrc"] = func(input string) string {
+		gopath := os.Getenv("GOPATH")
+		if gopath == "" {
+			gopath = build.Default.GOPATH
+		}
+
+		return strings.TrimPrefix(input, gopath + string(filepath.Separator))
+
+	}
+
 	return fmap
 }
 
