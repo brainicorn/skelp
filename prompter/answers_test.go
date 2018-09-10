@@ -91,7 +91,7 @@ func TestAsBool(t *testing.T) {
 		}
 
 		if b != abt.expectedBool {
-			t.Errorf("ABT bools don't match have (%b) want (%b)", b, abt.expectedBool)
+			t.Errorf("ABT bools don't match have (%t) want (%t)", b, abt.expectedBool)
 		}
 	}
 }

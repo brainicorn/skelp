@@ -31,7 +31,7 @@ func TestOutputDirCreated(t *testing.T) {
 	outputPath := "/tmp/skelpme"
 
 	if skelputil.PathExists(outputPath) {
-		t.Errorf("ouput path (%) should not exist yet", outputPath)
+		t.Errorf("ouput path (%s) should not exist yet", outputPath)
 	}
 
 	defer os.RemoveAll(outputPath)
@@ -42,6 +42,6 @@ func TestOutputDirCreated(t *testing.T) {
 	exec.Execute("../testdata/generator/simple", outputPath, testdata, provider.DefaultOverwriteProvider, provider.DefaultExcludesProvider)
 
 	if !skelputil.PathExists(outputPath) {
-		t.Errorf("ouput path (%) should have been created", outputPath)
+		t.Errorf("ouput path (%s) should have been created", outputPath)
 	}
 }

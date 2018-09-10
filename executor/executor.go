@@ -14,7 +14,7 @@ import (
 
 const (
 	ErrNoTemplatesFound = "No templates found in %s"
-	ErrBlankOutputDir   = "Output directory not provided"
+	ErrBlankOutputDir   = "Output directory not provided %s"
 )
 
 type WalkingExecutor struct {

@@ -9,7 +9,7 @@ import (
 func TestMainOK(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
-			t.Errorf("main should not have errored ", r)
+			t.Errorf("main should not have errored %s", r)
 		}
 	}()
 
@@ -28,7 +28,7 @@ func TestMainOK(t *testing.T) {
 func TestMainErr(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
-			t.Errorf("main should have errored ", r)
+			t.Errorf("main should have errored %s", r)
 		}
 	}()
 

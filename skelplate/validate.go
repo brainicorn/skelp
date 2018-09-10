@@ -59,7 +59,7 @@ func validateHookArray(hooks []string) error {
 	var err error
 	for _, hook := range hooks {
 		if len(strings.TrimSpace(hook)) < 1 {
-			err = fmt.Errorf("script must not be blank", hook)
+			err = fmt.Errorf("script must not be blank %s", hook)
 		}
 
 		if err == nil {
